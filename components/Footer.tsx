@@ -3,7 +3,7 @@ export default function Footer() {
     <footer>
       <div className="wrap">
         <span>© 2026 Emilie. All rights reserved.</span>
-        <span>Built with Next.js</span>
+        <span>Made by Oino</span>
       </div>
     </footer>
   );
