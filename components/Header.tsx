@@ -20,21 +20,25 @@ export default function Header() {
     const media = document.getElementById("hero-media");
     if (!media) {
       setPastVideo(true);
-      return;
     }
 
     const update = () => {
+      if (!media) return;
       // Transform a little before the video fully leaves the viewport
       const past = media.getBoundingClientRect().bottom <= 140;
       setPastVideo(past);
-      if (!past) setOpen(false);
+    };
+
+    const onScroll = () => {
+      setOpen(false);
+      update();
     };
 
     update();
-    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", update);
     return () => {
-      window.removeEventListener("scroll", update);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", update);
     };
   }, []);
