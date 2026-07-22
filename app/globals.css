@@ -364,13 +364,27 @@ header .wrap{
 .shop-info .btn:hover{background:none;color:var(--ink);opacity:0.5;}
 
 /* ---------------- CONTACT ---------------- */
+.newsletter{
+  padding:80px 0;
+  border-top:1px solid var(--line);
+}
+.newsletter .wrap{
+  display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:end;
+}
+.newsletter h2{font-size:clamp(2rem,3.5vw,2.75rem);letter-spacing:-0.03em;margin-bottom:12px;}
+.newsletter-copy p{color:var(--ink-soft);font-size:1.0625rem;max-width:360px;}
+.newsletter-row{display:flex;align-items:flex-end;gap:16px;}
+.newsletter-row input{flex:1;}
+.newsletter-row .btn{flex-shrink:0;padding:10px 0;border:none;border-bottom:1px solid var(--ink);}
+.newsletter-row .btn:hover{background:none;color:var(--ink);opacity:0.5;}
+
 .contact{
   min-height:100vh;
   display:flex;align-items:center;
   padding:120px 0;
   border-top:1px solid var(--line);
 }
-.contact .wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:80px;width:100%;align-items:start;}
+.contact .wrap{display:grid;grid-template-columns:1fr 1fr;gap:80px;width:100%;align-items:start;}
 .contact h2{font-size:clamp(2.25rem,4.2vw,3.5rem);letter-spacing:-0.03em;margin-bottom:22px;}
 .contact-intro p{color:var(--ink-soft);font-size:1.0625rem;max-width:400px;margin-bottom:32px;}
 .contact-links a{
@@ -379,13 +393,6 @@ header .wrap{
   transition:opacity .2s ease;
 }
 .contact-links a:hover{opacity:0.5;}
-.contact-forms{display:flex;flex-direction:column;gap:48px;}
-.contact-forms h3{font-size:1.25rem;letter-spacing:-0.01em;margin-bottom:8px;}
-.newsletter-form p{color:var(--ink-soft);font-size:1rem;margin-bottom:18px;max-width:360px;}
-.newsletter-row{display:flex;align-items:flex-end;gap:16px;}
-.newsletter-row input{flex:1;}
-.newsletter-row .btn{flex-shrink:0;padding:10px 0;border:none;border-bottom:1px solid var(--ink);}
-.newsletter-row .btn:hover{background:none;color:var(--ink);opacity:0.5;}
 form{display:flex;flex-direction:column;gap:16px;}
 form input, form textarea{
   background:none;border:none;border-bottom:1px solid var(--line);
@@ -446,7 +453,7 @@ footer .wrap{display:flex;justify-content:space-between;font-size:12px;color:var
   .hero-media video{height:42vh;}
   .hero-meta{padding:0 24px 0.75rem calc(1.85rem + 24px);}
   .works-embla{padding-left:24px;}
-  .about .wrap, .contact .wrap{grid-template-columns:1fr;gap:40px;}
+  .about .wrap, .contact .wrap, .newsletter .wrap{grid-template-columns:1fr;gap:40px;}
   .contact{min-height:auto;padding:90px 0;}
   .newsletter-row{flex-direction:column;align-items:stretch;gap:12px;}
   .newsletter-row .btn{align-self:flex-start;}
