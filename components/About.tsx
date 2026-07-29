@@ -1,65 +1,49 @@
-export default function About() {
+import type { AboutContent } from "@/lib/sanity-content";
+
+type AboutProps = {
+  content: AboutContent;
+};
+
+function CvGroup({
+  heading,
+  items,
+}: {
+  heading: string;
+  items?: { year?: string; title?: string; detail?: string }[];
+}) {
+  if (!items?.length) return null;
+
+  return (
+    <div className="cv-group">
+      <h3>{heading}</h3>
+      {items.map((item, i) => (
+        <div className="cv-row" key={`${item.year}-${item.title}-${i}`}>
+          <span className="yr">{item.year}</span>
+          <span className="what">
+            {item.title ? <b>{item.title}</b> : null}
+            {item.title && item.detail ? " — " : null}
+            {item.detail}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function About({ content }: AboutProps) {
   return (
     <section className="about" id="about">
       <div className="wrap">
         <div className="about-bio">
           <h2>About</h2>
-          <p>
-            My work moves between still life and dreamscape — orchids, shells, birds, and everyday
-            objects placed in soft, cloud-lit environments that feel just slightly out of time. Each
-            painting begins as a study of a single object and grows into a quiet scene about memory,
-            care, and the tension between abundance and absence.
-          </p>
-          <p>
-            Working primarily in oil on canvas, I&apos;m drawn to coastal light, classical staging, and
-            symbols borrowed from surrealism — thresholds, orbs, and the space between interior and
-            horizon.
-          </p>
+          {content.bio?.map((paragraph, i) => (
+            <p key={i}>{paragraph}</p>
+          ))}
         </div>
         <div className="about-cv">
-          <div className="cv-group">
-            <h3>Education</h3>
-            <div className="cv-row">
-              <span className="yr">2023–2025</span>
-              <span className="what">
-                <b>[MFA Fine Art]</b>, [Academy Name]
-              </span>
-            </div>
-            <div className="cv-row">
-              <span className="yr">2019–2022</span>
-              <span className="what">
-                <b>[BA Visual Art]</b>, [University Name]
-              </span>
-            </div>
-          </div>
-          <div className="cv-group">
-            <h3>Selected Exhibitions</h3>
-            <div className="cv-row">
-              <span className="yr">2025</span>
-              <span className="what">
-                <b>[Exhibition Title]</b> — Solo, [Gallery], Oslo
-              </span>
-            </div>
-            <div className="cv-row">
-              <span className="yr">2024</span>
-              <span className="what">
-                <b>[Exhibition Title]</b> — Group, [Gallery], Bergen
-              </span>
-            </div>
-            <div className="cv-row">
-              <span className="yr">2023</span>
-              <span className="what">
-                <b>[Exhibition Title]</b> — Group, [Gallery], Copenhagen
-              </span>
-            </div>
-          </div>
-          <div className="cv-group">
-            <h3>Awards</h3>
-            <div className="cv-row">
-              <span className="yr">2024</span>
-              <span className="what">[Award Name], [Institution]</span>
-            </div>
-          </div>
+          <CvGroup heading="Education" items={content.education} />
+          <CvGroup heading="Selected Exhibitions" items={content.exhibitions} />
+          <CvGroup heading="Awards" items={content.awards} />
         </div>
       </div>
     </section>

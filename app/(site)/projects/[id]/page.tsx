@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PROJECTS, getProject, getSiblings } from "@/lib/projects";
+import { getWorkBySlug, getWorkSiblings, getWorks } from "@/sanity/lib/fetch";
 
-export function generateStaticParams() {
-  return PROJECTS.map((p) => ({ id: p.id }));
+export async function generateStaticParams() {
+  const works = await getWorks();
+  return works.map((p) => ({ id: p.id }));
 }
 
 export async function generateMetadata({
@@ -13,7 +14,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const project = getProject(id);
+  const project = await getWorkBySlug(id);
   return { title: project ? `${project.title} — Emilie` : "Project — Emilie" };
 }
 
@@ -23,16 +24,17 @@ export default async function ProjectDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = getProject(id);
+  const project = await getWorkBySlug(id);
   if (!project) return notFound();
 
-  const { prev, next } = getSiblings(project.id);
+  const { prev, next } = await getWorkSiblings(project.id);
 
   return (
     <>
       <section className="detail-hero">
         <div className="wrap">
           <div className="detail-img">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={project.image} alt={project.title} />
           </div>
           <div className="detail-meta">

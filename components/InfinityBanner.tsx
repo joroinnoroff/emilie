@@ -1,9 +1,11 @@
-const TEXT = "Exhibition at Galleri Tjøme 25. July — 08. August";
+type InfinityBannerProps = {
+  text: string;
+};
 
-export default function InfinityBanner() {
+export default function InfinityBanner({ text }: InfinityBannerProps) {
   const items = Array.from({ length: 6 }, (_, i) => (
     <span key={i} className="infinity-banner-item">
-      {TEXT}
+      {text}
       <span className="infinity-banner-sep" aria-hidden="true">
         ·
       </span>
@@ -11,7 +13,7 @@ export default function InfinityBanner() {
   ));
 
   return (
-    <div className="infinity-banner" aria-label={TEXT}>
+    <div className="infinity-banner" aria-label={text}>
       <div className="infinity-banner-track">
         {items}
         {items}

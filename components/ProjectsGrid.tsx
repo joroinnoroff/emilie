@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import WorkCard from "./WorkCard";
-import { PROJECTS, getSeries } from "@/lib/projects";
+import type { Project } from "@/lib/projects";
 
-export default function ProjectsGrid() {
+type ProjectsGridProps = {
+  projects: Project[];
+  series: string[];
+};
+
+export default function ProjectsGrid({ projects, series }: ProjectsGridProps) {
   const [filter, setFilter] = useState("all");
   const [hoverImage, setHoverImage] = useState<string | null>(null);
-  const series = getSeries();
-  const items = PROJECTS.filter((p) => filter === "all" || p.series === filter);
+  const items = projects.filter((p) => filter === "all" || p.series === filter);
 
   return (
     <section className="projects-list works">

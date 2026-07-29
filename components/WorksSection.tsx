@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
-import { PROJECTS } from "@/lib/projects";
-
-const HOME_SERIES = ["Orchid Studies", "Coastal Thresholds"];
-const HOME_WORKS = PROJECTS.filter((p) => HOME_SERIES.includes(p.series));
+import type { Project } from "@/lib/projects";
 
 function Chevron({ dir }: { dir: "prev" | "next" }) {
   return (
@@ -22,7 +19,11 @@ function Chevron({ dir }: { dir: "prev" | "next" }) {
   );
 }
 
-export default function WorksSection() {
+type WorksSectionProps = {
+  works: Project[];
+};
+
+export default function WorksSection({ works }: WorksSectionProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     containScroll: "trimSnaps",
@@ -48,6 +49,10 @@ export default function WorksSection() {
     };
   }, [emblaApi, onSelect]);
 
+  useEffect(() => {
+    emblaApi?.reInit();
+  }, [emblaApi, works]);
+
   return (
     <section className="works" id="works">
       <div className="wrap">
@@ -62,9 +67,10 @@ export default function WorksSection() {
       <div className="works-embla-wrap">
         <div className="works-embla" ref={emblaRef}>
           <div className="works-embla-track">
-            {HOME_WORKS.map((p) => (
+            {works.map((p) => (
               <article className="work-slide" key={p.id}>
                 <div className="work-thumb">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.image} alt={p.title} />
                 </div>
                 <div className="work-slide-meta">

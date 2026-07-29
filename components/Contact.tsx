@@ -1,16 +1,24 @@
-export default function Contact() {
+import type { SiteSettings } from "@/lib/sanity-content";
+
+type ContactProps = {
+  settings: SiteSettings;
+};
+
+export default function Contact({ settings }: ContactProps) {
+  const email = settings.email || "post@emilie.no";
+  const instagram = settings.instagram || "#";
+
   return (
     <section className="contact" id="contact">
       <div className="wrap">
         <div className="contact-intro">
           <h2>Get in touch</h2>
-          <p>
-            Available for private inquiries, commissions, and exhibition collaborations. Based in
-            Norway, shipping internationally.
-          </p>
+          <p>{settings.contactIntro}</p>
           <div className="contact-links">
-            <a href="mailto:post@emilie.no">post@emilie.no</a>
-            <a href="#">Instagram →</a>
+            <a href={`mailto:${email}`}>{email}</a>
+            <a href={instagram} target="_blank" rel="noreferrer">
+              Instagram →
+            </a>
           </div>
         </div>
         <form className="contact-form">

@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { getForSale } from "@/lib/projects";
+import type { Project } from "@/lib/projects";
 
-export default function Shop() {
-  const items = getForSale().slice(0, 4);
+type ShopProps = {
+  items: Project[];
+};
 
+export default function Shop({ items }: ShopProps) {
   return (
     <section className="shop" id="shop">
       <div className="wrap">
@@ -14,6 +16,7 @@ export default function Shop() {
           {items.map((p) => (
             <div className="shop-card" key={p.id}>
               <div className="shop-thumb">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.image} alt={p.title} />
               </div>
               <div className="shop-info">
