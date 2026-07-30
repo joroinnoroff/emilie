@@ -11,6 +11,10 @@ export default function Shop({ items }: ShopProps) {
       <div className="wrap">
         <div className="section-head">
           <h2>Originals for Sale</h2>
+
+          <Link href="/shop" className="btn">
+            All Art →
+          </Link>
         </div>
         <div className="shop-grid">
           {items.map((p) => (

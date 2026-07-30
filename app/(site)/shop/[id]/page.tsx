@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { getShopWorks, getWorkBySlug } from "@/sanity/lib/fetch"
 import AddToCartButton from "@/components/AddToCartButton"
+import Link from "next/link"
 
 export async function generateStaticParams() {
   const products = await getShopWorks()
@@ -29,6 +30,10 @@ export default async function ProductDetail({
 
   return (
     <section className="detail-hero">
+<div className="arrowback back-link mb-4 wrap hover:underline hover:opacity-80 transition-all duration-300 mx-auto">
+<Link href="/shop" className=""> Back to shop</Link>
+</div>
+      
       <div className="wrap">
         <div className="detail-img">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,7 +70,7 @@ export default async function ProductDetail({
             ) : null}
           </div>
 
-          <div className="cart-block mb-42">
+          <div className="cart-block mb-32">
             <div className="cart-price">{product.price}</div>
             <AddToCartButton product={product} />
           </div>

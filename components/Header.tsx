@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useCart } from "./CartProvider"
+import { usePathname } from "next/navigation"
 
 const LINKS = [
   { href: "/projects", label: "Works" },
@@ -19,6 +20,9 @@ export default function Header() {
   const [open, setOpen] = useState(false)
   const [logoKey, setLogoKey] = useState(0)
   const { count, toggleCart, closeCart } = useCart()
+  const pathName = usePathname();
+
+  
 
   useEffect(() => {
     const media = document.getElementById("hero-media")
@@ -54,6 +58,7 @@ export default function Header() {
   }, [])
 
   const showLogo = !hasHero || pastVideo
+  const showCart = pathName.startsWith("/shop")
 
   return (
     <header className={`${pastVideo || !hasHero ? "scrolled" : ""}${open ? " menu-open" : ""}`}>
@@ -83,9 +88,11 @@ export default function Header() {
         )}
 
         <div className="header-actions">
-          <button type="button" className="cart-trigger" onClick={toggleCart}>
-            Cart{count > 0 ? ` (${count})` : ""}
-          </button>
+          {showCart ? (
+            <button type="button" className="cart-trigger" onClick={toggleCart}>
+              Cart{count > 0 ? ` (${count})` : ""}
+            </button>
+          ) : null}
 
           {!pastVideo && hasHero ? (
             <nav className="nav-inline">
