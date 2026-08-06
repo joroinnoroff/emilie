@@ -423,6 +423,17 @@ footer .wrap{display:flex;justify-content:space-between;font-size:12px;color:var
 /* ---------------- PROJECTS INDEX PAGE ---------------- */
 .page-hero{padding:150px 0 50px;}
 .page-hero h1{font-size:clamp(2.25rem,5vw,4rem);letter-spacing:-0.03em;}
+.filter-chip{
+  border:none;background:none;font:inherit;font-size:1rem;color:var(--ink-soft);
+  cursor:pointer;padding:4px 0;border-bottom:1px solid transparent;
+}
+.filter-chip:hover,.filter-chip.is-active{color:var(--ink);border-bottom-color:var(--ink);}
+.filter-expand{
+  border:none;background:none;padding:0;margin-left:4px;
+  color:var(--ink-soft);cursor:pointer;display:inline-flex;align-items:center;
+}
+.filter-expand:hover{color:var(--ink);}
+.filter-values .filter-chip{font-size:0.9375rem;}
 .projects-list{padding:20px 0 100px;}
 .projects-filter{display:flex;gap:24px;margin-bottom:44px;flex-wrap:wrap;}
 .projects-filter button{
