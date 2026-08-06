@@ -3,12 +3,15 @@ import Footer from "@/components/Footer"
 import { CartProvider } from "@/components/CartProvider"
 import CartDrawer from "@/components/Cart"
 import { LocaleProvider } from "@/lib/LocaleProvider"
+import { getSiteSettings } from "@/sanity/lib/fetch"
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getSiteSettings()
+
   return (
     <LocaleProvider>
       <CartProvider>
-        <Header />
+        <Header email={settings.email} instagram={settings.instagram} />
         {children}
         <Footer />
         <CartDrawer />

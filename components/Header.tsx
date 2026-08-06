@@ -22,7 +22,34 @@ function hasCookie(name: string) {
   return document.cookie.split("; ").some((c) => c.startsWith(`${name}=`))
 }
 
-export default function Header() {
+function InstagramIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+function MailIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M4 7l8 6 8-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+type HeaderProps = {
+  email?: string
+  instagram?: string
+}
+
+export default function Header({
+  email = "post@emilie.no",
+  instagram = "#",
+}: HeaderProps) {
   const [pastVideo, setPastVideo] = useState(false)
   const [hasHero, setHasHero] = useState(false)
   const [open, setOpen] = useState(false)
@@ -36,13 +63,12 @@ export default function Header() {
       [
         { href: "/projects", labelKey: "nav.works" as MessageKey },
         { href: "/#about", labelKey: "nav.about" as MessageKey },
-        { href: "/#shop", labelKey: "nav.shop" as MessageKey },
+        { href: "/shop", labelKey: "nav.shop" as MessageKey },
         { href: "/#contact", labelKey: "nav.contact" as MessageKey },
       ] as const,
     []
   )
 
-  // Mark that the next home visit should land at the hero top
   useEffect(() => {
     if (pathName !== "/") {
       setCookie(HERO_COOKIE, "1")
@@ -52,7 +78,6 @@ export default function Header() {
     }
   }, [pathName])
 
-  // On home: if cookie says we left another page, scroll to top so the banner isn't cropped
   useEffect(() => {
     if (pathName !== "/") return
 
@@ -76,13 +101,9 @@ export default function Header() {
       setPastVideo(past)
     }
 
-    // Wait a frame so Hero has mounted after client navigation
     const raf = requestAnimationFrame(() => {
       syncHero()
-      // After forced scroll, measure again
-      if (needsTop) {
-        requestAnimationFrame(syncHero)
-      }
+      if (needsTop) requestAnimationFrame(syncHero)
     })
 
     let wasPast = false
@@ -153,6 +174,23 @@ export default function Header() {
             </button>
           ) : null}
 
+<div className="lang-switch" role="group" aria-label="Language">
+            <button
+              type="button"
+              className={locale === "en" ? "is-active" : ""}
+              onClick={() => setLocale("en")}
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              className={locale === "nb" ? "is-active" : ""}
+              onClick={() => setLocale("nb")}
+            >
+              NO
+            </button>
+          </div>
+
           {!pastVideo && hasHero ? (
             <nav className="nav-inline">
               <ul>
@@ -176,28 +214,31 @@ export default function Header() {
             </button>
           )}
 
-          <div className="lang-switch" role="group" aria-label="Language">
-            <button
-              type="button"
-              className={locale === "en" ? "is-active" : ""}
-              onClick={() => setLocale("en")}
-            >
-              EN
-            </button>
-            <button
-              type="button"
-              className={locale === "nb" ? "is-active" : ""}
-              onClick={() => setLocale("nb")}
-            >
-              NO
-            </button>
-          </div>
+        
         </div>
       </div>
 
       {(pastVideo || !hasHero) && (
-        <div className={`menu-panel${open ? " open" : ""}`}>
+        <div className={`menu-panel${open ? " open pl-5" : ""}`}>
           <nav className="wrap">
+            <div className="menu-social">
+              <a
+                href={`mailto:${email}`}
+                aria-label="Email"
+                onClick={() => setOpen(false)}
+              >
+                <MailIcon />
+              </a>
+              <a
+                href={instagram}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+                onClick={() => setOpen(false)}
+              >
+                <InstagramIcon />
+              </a>
+            </div>
             <ul>
               {links.map((link) => (
                 <li key={link.href}>

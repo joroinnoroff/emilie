@@ -1,9 +1,23 @@
 "use client"
 
 import type { Project } from "@/lib/projects"
+import { useLocale } from "@/lib/LocaleProvider"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMemo, useState } from "react"
+
+function offerLabel(
+  product: Project,
+  t: ReturnType<typeof useLocale>["t"]
+) {
+  const originalOk = product.status !== "Sold" && product.stock > 0
+  const printsOk =
+    product.printAvailable && product.prints.some((pr) => pr.stock > 0)
+  if (originalOk && printsOk) return t("shop.offerBoth")
+  if (printsOk) return t("shop.printsAvailable")
+  if (originalOk) return t("shop.offerOriginal")
+  return null
+}
 
 type Facet = "all" | "size" | "type" | "price" | "year" | "series" | "prints"
 
@@ -83,10 +97,8 @@ function ChevronLeft({ className }: { className?: string }) {
 }
 
 export default function ProductFilter({ products }: { products: Project[] }) {
-  
   const [expanded, setExpanded] = useState(false)
-
-  const params = useSearchParams()
+  const { t } = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -210,8 +222,14 @@ export default function ProductFilter({ products }: { products: Project[] }) {
               : `/shop/${product.id}`
           return (
             <Link href={href} key={product.id} className="w-full h-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
+              <div className="aspect-[4/5] overflow-hidden bg-[#eee] mb-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <div className="size flex justify-between items-center my-2">
                 <h2>{product.title}</h2>
                 <span>
@@ -220,9 +238,12 @@ export default function ProductFilter({ products }: { products: Project[] }) {
                     : product.size}
                 </span>
               </div>
-              {product.printAvailable ? (
-                <p className="text-ink-soft text-sm">Prints available</p>
-              ) : null}
+              {(() => {
+                const label = offerLabel(product, t)
+                return label ? (
+                  <p className="text-ink-soft text-sm">{label}</p>
+                ) : null
+              })()}
             </Link>
           )
         })}

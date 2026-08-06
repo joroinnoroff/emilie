@@ -84,9 +84,7 @@ export default function ProductPurchase({ product }: ProductPurchaseProps) {
                 }}
               >
                 <span>{t("shop.original")}</span>
-                <span className="print-option-price">
-                  {locale === "nb" ? "1 / 1 unik" : "1 / 1 unique"}
-                </span>
+                <span className="print-option-price">1 / 1</span>
               </button>
             ) : null}
             {printAvailable ? (
@@ -141,17 +139,6 @@ export default function ProductPurchase({ product }: ProductPurchaseProps) {
       ) : null}
 
       <div className="cart-price">{money(prices)}</div>
-      <p className="stock-note">
-        {version === "original"
-          ? locale === "nb"
-            ? `Original — ${Math.min(product.stock, 1)} / 1 tilgjengelig`
-            : `Original — ${Math.min(product.stock, 1)} / 1 available`
-          : selectedPrint
-            ? locale === "nb"
-              ? `Trykk ${selectedPrint.size} — ${selectedPrint.stock} tilgjengelig`
-              : `Print ${selectedPrint.size} — ${selectedPrint.stock} available`
-            : null}
-      </p>
 
       {sold ? (
         <button type="button" className="btn disabled" disabled>
