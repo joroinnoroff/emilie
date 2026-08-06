@@ -1,5 +1,6 @@
+import { Suspense } from "react"
 import ProductFilter from "@/components/ProductFilter"
-import { getWorks } from "@/sanity/lib/fetch"
+import { getShopWorks } from "@/sanity/lib/fetch"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function ShopPage() {
-  const products = await getWorks()
+  const products = await getShopWorks()
 
   if (products.length === 0) {
     return (
@@ -23,7 +24,9 @@ export default async function ShopPage() {
   return (
     <section className="page-hero">
       <div className="wrap">
-        <ProductFilter products={products} />
+        <Suspense fallback={<p>Loading shop…</p>}>
+          <ProductFilter products={products} />
+        </Suspense>
       </div>
     </section>
   )

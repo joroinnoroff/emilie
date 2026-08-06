@@ -1,90 +1,53 @@
 import { groq } from "next-sanity"
 
-export const worksQuery = groq`
-  *[_type == "work"] | order(year desc) {
-    _id,
-    title,
-    "id": slug.current,
-    "series": series->title,
-    year,
-    image,
-    medium,
+const workFields = `
+  _id,
+  title,
+  "id": slug.current,
+  "series": series->title,
+  year,
+  image,
+  medium,
+  size,
+  stock,
+  priceNok,
+  priceEur,
+  priceUsd,
+  price,
+  status,
+  forSale,
+  featured,
+  printAvailable,
+  prints[]{
     size,
     stock,
     priceNok,
-    priceEur,
-    priceUsd,
-    price,
-    status,
-    forSale,
-    featured,
-    description
+    priceEur
+  },
+  description
+`
+
+export const worksQuery = groq`
+  *[_type == "work"] | order(year desc) {
+    ${workFields}
   }
 `
 
 export const workBySlugQuery = groq`
   *[_type == "work" && slug.current == $slug][0] {
-    _id,
-    title,
-    "id": slug.current,
-    "series": series->title,
-    year,
-    image,
-    medium,
-    size,
-    stock,
-    priceNok,
-    priceEur,
-    priceUsd,
-    price,
-    status,
-    forSale,
-    featured,
-    description
+    ${workFields}
   }
 `
 
 export const featuredWorksQuery = groq`
   *[_type == "work" && featured == true] | order(year desc) {
-    _id,
-    title,
-    "id": slug.current,
-    "series": series->title,
-    year,
-    image,
-    medium,
-    size,
-    stock,
-    priceNok,
-    priceEur,
-    priceUsd,
-    price,
-    status,
-    forSale,
-    featured,
-    description
+    ${workFields}
   }
 `
 
 export const shopWorksQuery = groq`
-  *[_type == "work" && forSale == true && status != "Sold"] | order(year desc) {
-    _id,
-    title,
-    "id": slug.current,
-    "series": series->title,
-    year,
-    image,
-    medium,
-    size,
-    stock,
-    priceNok,
-    priceEur,
-    priceUsd,
-    price,
-    status,
-    forSale,
-    featured,
-    description
+  *[_type == "work" && forSale == true && (status != "Sold" || printAvailable == true)] | order(year desc) {
+    ${workFields}
   }
 `
 
@@ -103,15 +66,30 @@ export const siteSettingsQuery = groq`
     *[_type == "siteSettings"][0]
   ) {
     heroStatement,
+    heroStatementNb,
     heroCtaLabel,
+    heroCtaLabelNb,
     basedIn,
+    basedInNb,
     bornIn,
+    bornInNb,
     exhibitionBanner,
+    exhibitionBannerNb,
     "heroVideoUrl": heroVideo.asset->url,
     email,
     instagram,
     contactIntro,
-    newsletterIntro
+    contactIntroNb,
+    newsletterIntro,
+    newsletterIntroNb,
+    deliveryOptions[]{
+      key,
+      label,
+      labelNb,
+      priceNok,
+      priceEur,
+      enabled
+    }
   }
 `
 

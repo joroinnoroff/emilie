@@ -14,7 +14,15 @@ import {
   defaultAbout,
   defaultSiteSettings,
 } from "@/lib/sanity-content"
-import { PROJECTS, type Project, type Status } from "@/lib/projects"
+import { PROJECTS, type PrintEdition, type Project, type Status } from "@/lib/projects"
+import { formatMoney } from "@/lib/i18n"
+
+type SanityPrint = {
+  size?: string | null
+  stock?: number | null
+  priceNok?: number | null
+  priceEur?: number | null
+}
 
 type SanityWork = {
   _id?: string
@@ -33,14 +41,32 @@ type SanityWork = {
   status?: Status | null
   forSale?: boolean | null
   featured?: boolean | null
+  printAvailable?: boolean | null
+  prints?: SanityPrint[] | null
   description?: string | null
 }
 
+function normalizePrints(prints: SanityPrint[] | null | undefined): PrintEdition[] {
+  return (prints || [])
+    .filter((p) => p?.size)
+    .map((p) => ({
+      size: p.size as string,
+      stock: typeof p.stock === "number" ? p.stock : 0,
+      priceNok: p.priceNok ?? undefined,
+      priceEur: p.priceEur ?? undefined,
+    }))
+}
+
+/** Prefer numeric Sanity prices so NOK always includes "kr". */
 function formatDisplayPrice(doc: SanityWork): string {
-  if (doc.price) return doc.price
-  if (doc.priceEur != null) return `€${doc.priceEur.toLocaleString("nb-NO")}`
-  if (doc.priceNok != null) return `${doc.priceNok.toLocaleString("nb-NO")} kr`
+  const formatted = formatMoney("en", {
+    priceNok: doc.priceNok,
+    priceEur: doc.priceEur,
+  })
+  if (formatted !== "—") return formatted
   if (doc.priceUsd != null) return `$${doc.priceUsd.toLocaleString("en-US")}`
+  // Ignore bare numbers in the old display field (e.g. "900")
+  if (doc.price && !/^\d+([.,]\d+)?$/.test(doc.price.trim())) return doc.price
   return "—"
 }
 
@@ -56,6 +82,9 @@ function normalizeWork(doc: SanityWork | null | undefined): Project | null {
 
   const status: Status = doc.status === "Sold" ? "Sold" : "Available"
   const stock = typeof doc.stock === "number" ? doc.stock : status === "Sold" ? 0 : 1
+  const prints = normalizePrints(doc.prints)
+  const hasPrintStock = Boolean(doc.printAvailable) && prints.some((p) => p.stock > 0)
+  const originalForSale = Boolean(doc.forSale) && status !== "Sold" && stock > 0
 
   return {
     id: doc.id,
@@ -72,7 +101,9 @@ function normalizeWork(doc: SanityWork | null | undefined): Project | null {
     priceUsd: doc.priceUsd ?? undefined,
     price: formatDisplayPrice(doc),
     status,
-    forSale: Boolean(doc.forSale) && status !== "Sold" && stock > 0,
+    forSale: originalForSale || hasPrintStock,
+    printAvailable: Boolean(doc.printAvailable),
+    prints,
     description: doc.description || "",
   }
 }
@@ -90,7 +121,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       {},
       { next: { revalidate: 30, tags: ["siteSettings"] } }
     )
-    return { ...defaultSiteSettings, ...data }
+    const merged = { ...defaultSiteSettings, ...data }
+    if (!merged.deliveryOptions?.length) {
+      merged.deliveryOptions = defaultSiteSettings.deliveryOptions
+    }
+    return merged
   } catch {
     return defaultSiteSettings
   }

@@ -1,9 +1,10 @@
-import Link from "next/link";
-import type { Project } from "@/lib/projects";
+import Link from "next/link"
+import type { Project } from "@/lib/projects"
+import Money from "@/components/Money"
 
 type ShopProps = {
-  items: Project[];
-};
+  items: Project[]
+}
 
 export default function Shop({ items }: ShopProps) {
   return (
@@ -25,8 +26,13 @@ export default function Shop({ items }: ShopProps) {
               </div>
               <div className="shop-info">
                 <div className="name">{p.title}</div>
-                <div className="price">{p.price}</div>
-                <div className="status">Original · {p.status}</div>
+                <div className="price">
+                  <Money priceNok={p.priceNok} priceEur={p.priceEur} />
+                </div>
+                <div className="status">
+                  {p.status}
+                  {p.printAvailable ? " · Prints available" : ""}
+                </div>
                 <Link href={`/shop/${p.id}`} className="btn">
                   View
                 </Link>
@@ -36,5 +42,5 @@ export default function Shop({ items }: ShopProps) {
         </div>
       </div>
     </section>
-  );
+  )
 }

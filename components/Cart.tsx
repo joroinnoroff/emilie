@@ -1,23 +1,24 @@
 "use client"
 
+import { useMemo } from "react"
 import Link from "next/link"
 import { useCart } from "./CartProvider"
-import type { Project } from "@/lib/projects"
+import { useLocale } from "@/lib/LocaleProvider"
+import { checkoutCurrency } from "@/lib/i18n"
 
-type CartDrawerProps = {
-  products: Project[]
-}
-
-export default function CartDrawer({ products }: CartDrawerProps) {
+export default function CartDrawer() {
   const { open, lines, closeCart, setQty, removeItem, getQty } = useCart()
+  const { locale, t, money } = useLocale()
+  const currency = checkoutCurrency(locale)
 
-  const detailed = lines
-    .map((line) => {
-      const product = products.find((p) => p.id === line.id)
-      if (!product) return null
-      return { line, product }
-    })
-    .filter(Boolean) as { line: { id: string; qty: number }; product: Project }[]
+  const total = useMemo(
+    () =>
+      lines.reduce((sum, line) => {
+        const unit = currency === "nok" ? line.priceNok : line.priceEur
+        return sum + (unit ?? 0) * line.qty
+      }, 0),
+    [lines, currency]
+  )
 
   return (
     <>
@@ -29,53 +30,61 @@ export default function CartDrawer({ products }: CartDrawerProps) {
 
       <aside className={`cart-drawer${open ? " open" : ""}`} aria-hidden={!open}>
         <div className="cart-drawer-head">
-          <h2>Cart</h2>
+          <h2>{t("nav.cart")}</h2>
           <button type="button" className="cart-close" onClick={closeCart} aria-label="Close cart">
             ×
           </button>
         </div>
 
-        {detailed.length === 0 ? (
-          <p className="cart-empty">Your cart is empty.</p>
+        {lines.length === 0 ? (
+          <p className="cart-empty">{t("checkout.empty")}</p>
         ) : (
           <ul className="cart-lines">
-            {detailed.map(({ line, product }) => {
-              const unique = product.stock <= 1
+            {lines.map((line) => {
+              const unique = line.maxStock <= 1
               return (
-                <li key={product.id} className="cart-line">
+                <li key={line.id} className="cart-line">
                   <div className="cart-line-thumb">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={product.image} alt={product.title} />
+                    <img src={line.image} alt={line.title} />
                   </div>
                   <div className="cart-line-meta">
-                    <div className="cart-line-title">{product.title}</div>
-                    <div className="cart-line-price">{product.price}</div>
+                    <div className="cart-line-title">{line.title}</div>
+                    <div className="cart-line-variant">
+                      {line.variant === "original"
+                        ? t("shop.original")
+                        : `${t("shop.print")} · ${line.printSize}`}
+                    </div>
+                    <div className="cart-line-price">
+                      {money({ priceNok: line.priceNok, priceEur: line.priceEur })}
+                      {line.qty > 1 ? ` × ${line.qty}` : ""}
+                    </div>
                     {unique ? (
                       <div className="cart-line-actions">
-                        <span className="cart-unique">Unique original</span>
-                        <button type="button" onClick={() => removeItem(product.id)}>
-                          Remove
+                        <span className="cart-unique">{t("shop.unique")}</span>
+                        <button type="button" onClick={() => removeItem(line.id)}>
+                          {t("checkout.remove")}
                         </button>
                       </div>
                     ) : (
                       <div className="cart-line-actions">
                         <button
                           type="button"
-                          disabled={getQty(product.id) <= 1}
-                          onClick={() => setQty(product.id, line.qty - 1, product.stock)}
+                          disabled={getQty(line.id) <= 1}
+                          onClick={() => setQty(line.id, line.qty - 1)}
                         >
                           −
                         </button>
                         <span>{line.qty}</span>
                         <button
                           type="button"
-                          disabled={line.qty >= product.stock}
-                          onClick={() => setQty(product.id, line.qty + 1, product.stock)}
+                          disabled={line.qty >= line.maxStock}
+                          onClick={() => setQty(line.id, line.qty + 1)}
                         >
                           +
                         </button>
-                        <button type="button" onClick={() => removeItem(product.id)}>
-                          Remove
+                        <button type="button" onClick={() => removeItem(line.id)}>
+                          {t("checkout.remove")}
                         </button>
                       </div>
                     )}
@@ -87,15 +96,27 @@ export default function CartDrawer({ products }: CartDrawerProps) {
         )}
 
         <div className="cart-drawer-foot">
+          {lines.length > 0 ? (
+            <div className="cart-total">
+              <span>{t("checkout.summary")}</span>
+              <strong>
+                {money(
+                  currency === "nok"
+                    ? { priceNok: total, priceEur: null }
+                    : { priceNok: null, priceEur: total }
+                )}
+              </strong>
+            </div>
+          ) : null}
           <Link
             href="/checkout"
-            className={`btn${detailed.length === 0 ? " disabled" : ""}`}
+            className={`btn${lines.length === 0 ? " disabled" : ""}`}
             onClick={(e) => {
-              if (detailed.length === 0) e.preventDefault()
+              if (lines.length === 0) e.preventDefault()
               else closeCart()
             }}
           >
-            Checkout
+            {t("checkout.title")}
           </Link>
         </div>
       </aside>

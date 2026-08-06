@@ -26,8 +26,10 @@ type WorksSectionProps = {
 export default function WorksSection({ works }: WorksSectionProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
-    containScroll: "trimSnaps",
-    dragFree: true,
+    containScroll: false,
+    dragFree: false,
+    skipSnaps: false,
+    duration: 25,
   });
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);

@@ -45,45 +45,93 @@ export const work = defineType({
     }),
     defineField({
       name: "size",
-      title: "Size",
+      title: "Original size",
       type: "string",
       description: "e.g. 60 × 50 cm",
     }),
     defineField({
       name: "stock",
-      title: "Stock",
+      title: "Original stock",
       type: "number",
-      description: "Use 1 for unique originals (no quantity stepper in cart)",
+      description: "Usually 1 for unique originals",
       initialValue: 1,
       validation: (Rule) => Rule.min(0).integer(),
     }),
     defineField({
       name: "priceNok",
-      title: "Price (NOK)",
+      title: "Original price (NOK)",
       type: "number",
-      description: "Whole kroner for Vipps / Scandinavia",
+      description: "Shown when language is Norwegian — displays as e.g. 9 000 kr",
     }),
     defineField({
       name: "priceEur",
-      title: "Price (EUR)",
+      title: "Original price (EUR)",
       type: "number",
-      description: "Whole euros for Stripe",
+      description: "Shown when language is English — displays as e.g. €900",
     }),
     defineField({
-      name: "priceUsd",
-      title: "Price (USD)",
-      type: "number",
-      description: "Whole dollars for Stripe",
+      name: "printAvailable",
+      title: "Print available?",
+      type: "boolean",
+      description: "Offer print editions in addition to the original",
+      initialValue: false,
     }),
     defineField({
-      name: "price",
-      title: "Price label (display)",
-      type: "string",
-      description: "Optional display string, e.g. €1,450 — checkout uses numeric prices",
+      name: "prints",
+      title: "Print sizes",
+      type: "array",
+      description: "Add one entry per print size / edition",
+      hidden: ({ parent }) => !parent?.printAvailable,
+      of: [
+        {
+          type: "object",
+          name: "printEdition",
+          title: "Print edition",
+          fields: [
+            {
+              name: "size",
+              title: "Size",
+              type: "string",
+              description: "e.g. 30 × 40 cm",
+              validation: (Rule) => Rule.required(),
+            },
+            {
+              name: "stock",
+              title: "Quantity",
+              type: "number",
+              initialValue: 10,
+              validation: (Rule) => Rule.min(0).integer().required(),
+            },
+            {
+              name: "priceNok",
+              title: "Price (NOK)",
+              type: "number",
+              validation: (Rule) => Rule.min(0),
+            },
+            {
+              name: "priceEur",
+              title: "Price (EUR)",
+              type: "number",
+              validation: (Rule) => Rule.min(0),
+            },
+          ],
+          preview: {
+            select: { title: "size", stock: "stock", nok: "priceNok", eur: "priceEur" },
+            prepare({ title, stock, nok, eur }) {
+              const price =
+                eur != null ? `€${eur}` : nok != null ? `${nok} kr` : "—"
+              return {
+                title: title || "Print",
+                subtitle: `${price} · stock ${stock ?? 0}`,
+              }
+            },
+          },
+        },
+      ],
     }),
     defineField({
       name: "status",
-      title: "Status",
+      title: "Original status",
       type: "string",
       options: {
         list: [

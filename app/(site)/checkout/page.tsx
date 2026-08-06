@@ -1,20 +1,24 @@
 import type { Metadata } from "next"
 import CheckoutClient from "@/components/CheckoutClient"
-import { getWorks } from "@/sanity/lib/fetch"
+import { getSiteSettings } from "@/sanity/lib/fetch"
+import { defaultSiteSettings } from "@/lib/sanity-content"
 
 export const metadata: Metadata = {
   title: "Checkout — Emilie",
 }
 
 export default async function CheckoutPage() {
-  const products = await getWorks()
+  const settings = await getSiteSettings()
+  const deliveryOptions =
+    settings.deliveryOptions?.length
+      ? settings.deliveryOptions
+      : defaultSiteSettings.deliveryOptions || []
 
   return (
     <section className="page-hero checkout-page">
       <div className="wrap">
         <h1>Checkout</h1>
-        <p className="checkout-lead">Demo flow — Vipps & Stripe come next.</p>
-        <CheckoutClient products={products} />
+        <CheckoutClient deliveryOptions={deliveryOptions} />
       </div>
     </section>
   )

@@ -5,13 +5,14 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMemo, useState } from "react"
 
-type Facet = "all" | "size" | "type" | "price" | "year" | "series"
+type Facet = "all" | "size" | "type" | "price" | "year" | "series" | "prints"
 
 const PRIMARY: { value: Facet; label: string }[] = [
   { value: "all", label: "All" },
   { value: "size", label: "Size" },
   { value: "type", label: "Type" },
   { value: "price", label: "Price" },
+  { value: "prints", label: "Prints" },
 ]
 
 const EXTRA: { value: Facet; label: string }[] = [
@@ -36,7 +37,15 @@ function priceAmount(p: Project) {
 }
 
 function matchesFacet(p: Project, facet: Facet, value: string | null) {
-  if (facet === "all" || !value) return true
+  if (facet === "all") return true
+  if (facet === "prints") {
+    if (!p.printAvailable) return false
+    const inStock = p.prints.filter((pr) => pr.stock > 0)
+    if (!inStock.length) return false
+    if (!value) return true
+    return inStock.some((pr) => pr.size === value)
+  }
+  if (!value) return true
   if (facet === "size") return p.size === value
   if (facet === "type") return p.medium === value
   if (facet === "year") return p.year === value
@@ -94,6 +103,15 @@ export default function ProductFilter({ products }: { products: Project[] }) {
     if (facet === "type") return uniqueSorted(products.map((p) => p.medium))
     if (facet === "year") return uniqueSorted(products.map((p) => p.year))
     if (facet === "series") return uniqueSorted(products.map((p) => p.series))
+    if (facet === "prints") {
+      return uniqueSorted(
+        products.flatMap((p) =>
+          p.printAvailable
+            ? p.prints.filter((pr) => pr.stock > 0).map((pr) => pr.size)
+            : []
+        )
+      )
+    }
     if (facet === "price") {
       return PRICE_BUCKETS.map((b) => ({ value: b.value, label: b.label }))
     }
@@ -165,7 +183,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
                     key={opt.value}
                     type="button"
                     className={`filter-chip${value === opt.value ? " is-active" : ""}`}
-                    onClick={() => setValue(value === opt.value ? null : opt.value)}
+                    onClick={() => selectValue(value === opt.value ? null : opt.value)}
                   >
                     {opt.label}
                   </button>
@@ -175,7 +193,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
                     key={opt}
                     type="button"
                     className={`filter-chip${value === opt ? " is-active" : ""}`}
-                    onClick={() => setValue(value === opt ? null : opt)}
+                    onClick={() => selectValue(value === opt ? null : opt)}
                   >
                     {opt}
                   </button>
@@ -185,16 +203,29 @@ export default function ProductFilter({ products }: { products: Project[] }) {
       </div>
 
       <div className="grid items-center justify-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-14 min-h-full mb-10">
-        {visible.map((product) => (
-          <Link href={`/shop/${product.id}`} key={product.id} className="w-full h-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
-            <div className="size flex justify-between items-center my-2">
-              <h2>{product.title}</h2>
-              {product.size}
-            </div>
-          </Link>
-        ))}
+        {visible.map((product) => {
+          const href =
+            facet === "prints"
+              ? `/shop/${product.id}?version=print${value ? `&size=${encodeURIComponent(value)}` : ""}`
+              : `/shop/${product.id}`
+          return (
+            <Link href={href} key={product.id} className="w-full h-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
+              <div className="size flex justify-between items-center my-2">
+                <h2>{product.title}</h2>
+                <span>
+                  {facet === "prints"
+                    ? value || "Prints"
+                    : product.size}
+                </span>
+              </div>
+              {product.printAvailable ? (
+                <p className="text-ink-soft text-sm">Prints available</p>
+              ) : null}
+            </Link>
+          )
+        })}
       </div>
 
       {visible.length === 0 ? (

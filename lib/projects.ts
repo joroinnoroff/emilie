@@ -1,22 +1,32 @@
-export type Status = "Available" | "Sold";
+export type Status = "Available" | "Sold"
+
+export type PrintEdition = {
+  size: string
+  stock: number
+  priceNok?: number
+  priceEur?: number
+}
 
 export interface Project {
-  id: string;
-  sanityId?: string;
-  title: string;
-  series: string;
-  year: string;
-  image: string;
-  medium: string;
-  size: string;
-  stock: number;
-  priceNok?: number;
-  priceEur?: number;
-  priceUsd?: number;
-  price: string;
-  status: Status;
-  forSale: boolean;
-  description: string;
+  id: string
+  sanityId?: string
+  title: string
+  series: string
+  year: string
+  image: string
+  medium: string
+  size: string
+  stock: number
+  priceNok?: number
+  priceEur?: number
+  priceUsd?: number
+  /** Locale-agnostic fallback label — prefer formatMoney / useLocale().money */
+  price: string
+  status: Status
+  forSale: boolean
+  printAvailable: boolean
+  prints: PrintEdition[]
+  description: string
 }
 
 export const PROJECTS: Project[] = [
@@ -29,9 +39,16 @@ export const PROJECTS: Project[] = [
     medium: "Oil on canvas",
     size: "60 × 50 cm",
     price: "€1,450",
+    priceEur: 1450,
+    priceNok: 16000,
     status: "Available",
     stock: 1,
     forSale: true,
+    printAvailable: true,
+    prints: [
+      { size: "30 × 40 cm", stock: 20, priceEur: 120, priceNok: 1400 },
+      { size: "50 × 70 cm", stock: 10, priceEur: 220, priceNok: 2500 },
+    ],
     description:
       "A cattleya orchid rises from a stacked field of dominoes, chance and bloom balanced on the same tide-smoothed platform. Beneath it, a cracked-open chestnut waits for the game to be decided.",
   },
@@ -44,9 +61,13 @@ export const PROJECTS: Project[] = [
     medium: "Oil on canvas",
     size: "48 × 64 cm",
     price: "€980",
+    priceEur: 980,
+    priceNok: 11000,
     status: "Available",
     stock: 1,
     forSale: true,
+    printAvailable: false,
+    prints: [],
     description:
       "A cyclamen leans into an oversized ear across an impossibly flat lawn — a study in listening, and in what a flower might be trying to say.",
   },
@@ -59,9 +80,13 @@ export const PROJECTS: Project[] = [
     medium: "Oil on canvas",
     size: "51 × 64 cm",
     price: "€1,050",
+    priceEur: 1050,
+    priceNok: 12000,
     status: "Available",
     stock: 1,
     forSale: true,
+    printAvailable: true,
+    prints: [{ size: "40 × 50 cm", stock: 15, priceEur: 150, priceNok: 1700 }],
     description:
       "A swan's neck dissolves into a white phalaenopsis bloom, drifting across a mountain lake caught between stillness and metamorphosis.",
   },
@@ -77,131 +102,17 @@ export const PROJECTS: Project[] = [
     status: "Sold",
     stock: 0,
     forSale: false,
+    printAvailable: false,
+    prints: [],
     description:
-      "An open red door frames a pair of spotted orchids against rolling farmland — the domestic and the wild sharing the same threshold.",
+      "A deep red interior opens onto coastal light — the threshold between private heat and public weather.",
   },
-  {
-    id: "shell-sanctuary",
-    title: "Shell Sanctuary",
-    series: "Coastal Thresholds",
-    year: "2024",
-    image: "/image2.jpeg",
-    medium: "Oil on canvas",
-    size: "51 × 64 cm",
-    price: "€1,200",
-    status: "Available",
-    stock: 1,
-    forSale: true,
-    description:
-      "A murex shell stands like a monument beneath a vaulted stone archway, an orchid and a braided cord left as offerings at its base.",
-  },
-  {
-    id: "knight-at-sunset",
-    title: "Knight at Sunset",
-    series: "Coastal Thresholds",
-    year: "2024",
-    image: "/image3.jpeg",
-    medium: "Oil on canvas",
-    size: "50 × 64 cm",
-    price: "€1,600",
-    status: "Available",
-    stock: 1,
-    forSale: true,
-    description:
-      "A chess knight, cast in stone, watches the tide from a darkening shoreline — a single piece left mid-game against the horizon.",
-  },
-  {
-    id: "stork-and-shell",
-    title: "Stork & Shell",
-    series: "Coastal Thresholds",
-    year: "2023",
-    image: "/image8.jpeg",
-    medium: "Oil on canvas",
-    size: "60 × 48 cm",
-    price: "—",
-    status: "Sold",
-    stock: 0,
-    forSale: false,
-    description:
-      "A stork considers a conch shell balanced with an apple on a plinth, the sky behind them collapsing into dusk.",
-  },
-  {
-    id: "diner-steps",
-    title: "Diner Steps",
-    series: "Coastal Thresholds",
-    year: "2023",
-    image: "/image13.jpeg",
-    medium: "Oil on canvas",
-    size: "60 × 48 cm",
-    price: "€1,100",
-    status: "Available",
-    stock: 1,
-    forSale: true,
-    description:
-      "A crumpled note reading “Diner” rests at the foot of stone steps, a swallow and a nautilus shell keeping watch beneath a full moon.",
-  },
-  {
-    id: "weeping-fountain",
-    title: "The Weeping Fountain",
-    series: "Quiet Interiors",
-    year: "2025",
-    image: "/image14.jpeg",
-    medium: "Oil on canvas",
-    size: "60 × 48 cm",
-    price: "—",
-    status: "Sold",
-    stock: 0,
-    forSale: false,
-    description:
-      "A fountain with eyes instead of a face weeps quietly onto sand, while a chickadee perched on stone regards it without concern.",
-  },
-  {
-    id: "rose-and-portrait",
-    title: "Rose & Portrait",
-    series: "Quiet Interiors",
-    year: "2023",
-    image: "/image9.jpeg",
-    medium: "Oil on canvas",
-    size: "51 × 64 cm",
-    price: "€1,150",
-    status: "Available",
-    stock: 1,
-    forSale: true,
-    description:
-      "A woman's face, cut cleanly in profile against an open sky, faces a single rose losing its petals to the wind.",
-  },
-  {
-    id: "driftwood-and-feather",
-    title: "Driftwood & Feather",
-    series: "Quiet Interiors",
-    year: "2023",
-    image: "/image12.jpeg",
-    medium: "Oil on canvas",
-    size: "48 × 64 cm",
-    price: "€890",
-    status: "Available",
-    stock: 1,
-    forSale: true,
-    description:
-      "A pale orchid rests between driftwood and a single feather, staged against a sky the color of an ending day.",
-  },
-];
-
-export function getProject(id: string): Project | undefined {
-  return PROJECTS.find((p) => p.id === id);
-}
+]
 
 export function getSeries(): string[] {
-  return Array.from(new Set(PROJECTS.map((p) => p.series)));
+  return Array.from(new Set(PROJECTS.map((p) => p.series)))
 }
 
-export function getForSale(): Project[] {
-  return PROJECTS.filter((p) => p.forSale);
-}
-
-export function getSiblings(id: string): { prev: Project; next: Project } {
-  const idx = PROJECTS.findIndex((p) => p.id === id);
-  const prev = PROJECTS[(idx - 1 + PROJECTS.length) % PROJECTS.length];
-  const next = PROJECTS[(idx + 1) % PROJECTS.length];
-  return { prev, next };
+export function getShopProjects(): Project[] {
+  return PROJECTS.filter((p) => p.forSale)
 }

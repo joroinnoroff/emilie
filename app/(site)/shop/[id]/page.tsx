@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { getShopWorks, getWorkBySlug } from "@/sanity/lib/fetch"
-import AddToCartButton from "@/components/AddToCartButton"
 import FullscreenImage from "@/components/FullscreenImage"
+import ProductPurchase from "@/components/ProductPurchase"
 import Link from "next/link"
 
 export async function generateStaticParams() {
@@ -38,7 +39,9 @@ export default async function ProductDetail({
       <div className="wrap">
         <FullscreenImage src={product.image} alt={product.title} />
         <div className="detail-meta">
-          <div className="detail-eyebrow">Original Painting — {product.year}</div>
+          <div className="detail-eyebrow">
+            {product.medium} — {product.year}
+          </div>
           <h1>{product.title}</h1>
           <p>{product.description}</p>
           <div className="detail-specs">
@@ -47,30 +50,29 @@ export default async function ProductDetail({
               <span>{product.medium}</span>
             </div>
             <div>
-              <span>Size</span>
-              <span>{product.size}</span>
+              <span>Original size</span>
+              <span>{product.size || "—"}</span>
             </div>
             <div>
               <span>Status</span>
               <span>{product.status}</span>
             </div>
-            {product.priceNok != null ? (
+            {product.printAvailable ? (
               <div>
-                <span>NOK</span>
-                <span>{product.priceNok.toLocaleString("nb-NO")} kr</span>
-              </div>
-            ) : null}
-            {product.priceEur != null ? (
-              <div>
-                <span>EUR</span>
-                <span>€{product.priceEur.toLocaleString("nb-NO")}</span>
+                <span>Prints</span>
+                <span>
+                  {product.prints.filter((p) => p.stock > 0).length
+                    ? `${product.prints.filter((p) => p.stock > 0).length} size(s)`
+                    : "Unavailable"}
+                </span>
               </div>
             ) : null}
           </div>
 
           <div className="cart-block mb-32">
-            <div className="cart-price">{product.price}</div>
-            <AddToCartButton product={product} />
+            <Suspense fallback={<p className="cart-note">Loading…</p>}>
+              <ProductPurchase product={product} />
+            </Suspense>
           </div>
         </div>
       </div>

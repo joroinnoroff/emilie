@@ -11,9 +11,27 @@ import {
 } from "react"
 import type { Project } from "@/lib/projects"
 
+export type CartVariant = "original" | "print"
+
 export type CartLine = {
+  /** Unique line key: productId:original or productId:print:size */
   id: string
+  productId: string
+  variant: CartVariant
+  printSize?: string
   qty: number
+  /** Snapshot prices at add-time */
+  priceNok?: number
+  priceEur?: number
+  title: string
+  image: string
+  maxStock: number
+}
+
+type AddCartItemInput = {
+  product: Project
+  variant: CartVariant
+  printSize?: string
 }
 
 type CartContextValue = {
@@ -24,15 +42,20 @@ type CartContextValue = {
   openCart: () => void
   closeCart: () => void
   toggleCart: () => void
-  addItem: (product: Project) => { ok: boolean; reason?: string }
-  setQty: (id: string, qty: number, maxStock: number) => void
+  addItem: (input: AddCartItemInput) => { ok: boolean; reason?: string }
+  setQty: (id: string, qty: number) => void
   removeItem: (id: string) => void
   clearCart: () => void
   getQty: (id: string) => number
 }
 
-const STORAGE_KEY = "emilie-cart-v1"
+const STORAGE_KEY = "emilie-cart-v2"
 const CartContext = createContext<CartContextValue | null>(null)
+
+export function cartLineId(productId: string, variant: CartVariant, printSize?: string) {
+  if (variant === "print") return `${productId}:print:${printSize || ""}`
+  return `${productId}:original`
+}
 
 function readStorage(): CartLine[] {
   if (typeof window === "undefined") return []
@@ -70,39 +93,72 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [lines]
   )
 
-  const addItem = useCallback((product: Project) => {
-    if (product.status === "Sold" || product.stock < 1 || !product.forSale) {
-      return { ok: false, reason: "sold" as const }
+  const addItem = useCallback((input: AddCartItemInput) => {
+    const { product, variant, printSize } = input
+    const print =
+      variant === "print"
+        ? product.prints.find((p) => p.size === printSize)
+        : undefined
+
+    if (variant === "original") {
+      if (product.status === "Sold" || product.stock < 1 || !product.forSale) {
+        return { ok: false, reason: "sold" as const }
+      }
+    } else {
+      if (!product.printAvailable || !print || print.stock < 1) {
+        return { ok: false, reason: "sold" as const }
+      }
     }
+
+    const id = cartLineId(product.id, variant, printSize)
+    const maxStock = variant === "original" ? product.stock : print!.stock
+    const priceNok = variant === "original" ? product.priceNok : print?.priceNok
+    const priceEur = variant === "original" ? product.priceEur : print?.priceEur
 
     let result: { ok: boolean; reason?: string } = { ok: true }
 
     setLines((prev) => {
-      const existing = prev.find((l) => l.id === product.id)
+      const existing = prev.find((l) => l.id === id)
       if (existing) {
-        if (product.stock <= 1) {
+        if (maxStock <= 1) {
           result = { ok: false, reason: "unique" }
           return prev
         }
-        if (existing.qty >= product.stock) {
+        if (existing.qty >= maxStock) {
           result = { ok: false, reason: "max" }
           return prev
         }
-        return prev.map((l) =>
-          l.id === product.id ? { ...l, qty: l.qty + 1 } : l
-        )
+        return prev.map((l) => (l.id === id ? { ...l, qty: l.qty + 1 } : l))
       }
-      return [...prev, { id: product.id, qty: 1 }]
+
+      return [
+        ...prev,
+        {
+          id,
+          productId: product.id,
+          variant,
+          printSize,
+          qty: 1,
+          priceNok,
+          priceEur,
+          title: product.title,
+          image: product.image,
+          maxStock,
+        },
+      ]
     })
 
     return result
   }, [])
 
-  const setQty = useCallback((id: string, qty: number, maxStock: number) => {
+  const setQty = useCallback((id: string, qty: number) => {
     setLines((prev) => {
+      const line = prev.find((l) => l.id === id)
+      if (!line) return prev
       if (qty < 1) return prev.filter((l) => l.id !== id)
-      const nextQty = Math.min(qty, Math.max(1, maxStock))
-      return prev.map((l) => (l.id === id ? { ...l, qty: nextQty } : l))
+      return prev.map((l) =>
+        l.id === id ? { ...l, qty: Math.min(qty, Math.max(1, l.maxStock)) } : l
+      )
     })
   }, [])
 
