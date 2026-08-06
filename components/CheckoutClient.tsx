@@ -41,6 +41,8 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
   const [error, setError] = useState<string | null>(null)
   const linesSnapshot = useRef(lines)
 
+  const [retryToken, setRetryToken] = useState(0)
+
   // Keep a snapshot for Stripe after navigating steps (cart stays until success)
   useEffect(() => {
     if (lines.length) linesSnapshot.current = lines
@@ -93,33 +95,35 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
     setError(null)
     setClientSecret(null)
 
-    ;(async () => {
+    const payload = {
+      locale,
+      currency,
+      email: email.trim(),
+      name: name.trim(),
+      delivery: {
+        key: selectedDelivery.key,
+        label: deliveryLabel(selectedDelivery),
+        priceNok: selectedDelivery.priceNok,
+        priceEur: selectedDelivery.priceEur,
+      },
+      lines: activeLines.map((l) => ({
+        id: l.id,
+        productId: l.productId,
+        variant: l.variant,
+        printSize: l.printSize,
+        qty: l.qty,
+        title: l.title,
+        priceNok: l.priceNok,
+        priceEur: l.priceEur,
+      })),
+    }
+
+    async function fetchCheckout(attempt = 1): Promise<void> {
       try {
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            locale,
-            currency,
-            email: email.trim(),
-            name: name.trim(),
-            delivery: {
-              key: selectedDelivery.key,
-              label: deliveryLabel(selectedDelivery),
-              priceNok: selectedDelivery.priceNok,
-              priceEur: selectedDelivery.priceEur,
-            },
-            lines: activeLines.map((l) => ({
-              id: l.id,
-              productId: l.productId,
-              variant: l.variant,
-              printSize: l.printSize,
-              qty: l.qty,
-              title: l.title,
-              priceNok: l.priceNok,
-              priceEur: l.priceEur,
-            })),
-          }),
+          body: JSON.stringify(payload),
         })
         const data = (await res.json()) as { clientSecret?: string; error?: string }
         if (cancelled) return
@@ -129,18 +133,33 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
         }
         setClientSecret(data.clientSecret)
       } catch {
-        if (!cancelled) setError("Could not start payment.")
-      } finally {
-        if (!cancelled) setLoadingCheckout(false)
+        // ERR_NETWORK_CHANGED / flaky Wi‑Fi — retry a couple times
+        if (!cancelled && attempt < 3) {
+          await new Promise((r) => setTimeout(r, 600 * attempt))
+          if (!cancelled) return fetchCheckout(attempt + 1)
+          return
+        }
+        if (!cancelled) {
+          setError(
+            locale === "nb"
+              ? "Nettverksfeil ved oppstart av betaling. Prøv igjen."
+              : "Network error starting payment. Please try again."
+          )
+        }
       }
+    }
+
+    ;(async () => {
+      await fetchCheckout(1)
+      if (!cancelled) setLoadingCheckout(false)
     })()
 
     return () => {
       cancelled = true
     }
-    // intentionally recreate when delivery / step / currency changes
+    // intentionally recreate when delivery / step / currency / retry changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, deliveryKey, currency, locale])
+  }, [step, deliveryKey, currency, locale, retryToken])
 
   const continueToPayment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -259,7 +278,21 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                 {locale === "nb" ? "Betaling" : "Payment"}
               </h2>
 
-              {error ? <p className="checkout-error">{error}</p> : null}
+              {error ? (
+                <div className="checkout-error-block">
+                  <p className="checkout-error">{error}</p>
+                  <button
+                    type="button"
+                    className="btn outline"
+                    onClick={() => {
+                      setError(null)
+                      setRetryToken((n) => n + 1)
+                    }}
+                  >
+                    {locale === "nb" ? "Prøv igjen" : "Try again"}
+                  </button>
+                </div>
+              ) : null}
               {loadingCheckout ? (
                 <p className="cart-note">
                   {locale === "nb" ? "Laster betaling…" : "Loading payment…"}
