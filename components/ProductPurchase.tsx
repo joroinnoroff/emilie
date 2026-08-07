@@ -125,12 +125,10 @@ export default function ProductPurchase({ product }: ProductPurchaseProps) {
                 }}
               >
                 <span>{p.size}</span>
-                <span className="print-option-price">
+                <span className="print-option-price text-center mx-auto">
                   {money({ priceNok: p.priceNok, priceEur: p.priceEur })}
                   {" · "}
-                  {locale === "nb"
-                    ? `${p.stock} tilgjengelig`
-                    : `${p.stock} available`}
+                  
                 </span>
               </button>
             ))}
