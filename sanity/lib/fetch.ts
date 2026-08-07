@@ -125,6 +125,12 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     if (!merged.deliveryOptions?.length) {
       merged.deliveryOptions = defaultSiteSettings.deliveryOptions
     }
+    if (!merged.commissionBody?.length) {
+      merged.commissionBody = defaultSiteSettings.commissionBody
+    }
+    if (!merged.commissionBodyNb?.length) {
+      merged.commissionBodyNb = defaultSiteSettings.commissionBodyNb
+    }
     return merged
   } catch {
     return defaultSiteSettings

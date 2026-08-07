@@ -158,13 +158,13 @@ export default function ProductFilter({ products }: { products: Project[] }) {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-2">
-        <h1>All art for sale</h1>
-        <span className="text-ink-soft">({visible.length})</span>
+      <div className="flex justify-between items-baseline gap-4 mb-2 min-w-0">
+        <h1 className="min-w-0 break-words">All art for sale</h1>
+        <span className="text-ink-soft shrink-0">({visible.length})</span>
       </div>
 
-      <div className="sticky top-[var(--header-height)] z-[150] -mx-12 px-12 bg-white py-3 mb-6">
-        <div className="filterComp flex flex-wrap gap-2 items-center">
+      <div className="shop-filter-bar sticky top-[var(--header-height)] z-[150] bg-white py-3 mb-6">
+        <div className="filterComp flex flex-wrap gap-x-3 gap-y-2 items-center">
           {categories.map((option) => (
             <button
               key={option.value}
@@ -214,14 +214,14 @@ export default function ProductFilter({ products }: { products: Project[] }) {
         ) : null}
       </div>
 
-      <div className="grid items-center justify-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-14 min-h-full mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-14 min-h-full mb-10 w-full">
         {visible.map((product) => {
           const href =
             facet === "prints"
               ? `/shop/${product.id}?version=print${value ? `&size=${encodeURIComponent(value)}` : ""}`
               : `/shop/${product.id}`
           return (
-            <Link href={href} key={product.id} className="w-full h-full">
+            <Link href={href} key={product.id} className="w-full min-w-0">
               <div className="aspect-[4/5] overflow-hidden bg-[#eee] mb-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -230,9 +230,9 @@ export default function ProductFilter({ products }: { products: Project[] }) {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="size flex justify-between items-center my-2">
-                <h2>{product.title}</h2>
-                <span>
+              <div className="size flex justify-between items-baseline gap-3 my-2 min-w-0">
+                <h2 className="min-w-0 truncate text-[1.125rem] font-medium">{product.title}</h2>
+                <span className="shrink-0 text-ink-soft text-sm">
                   {facet === "prints"
                     ? value || "Prints"
                     : product.size}

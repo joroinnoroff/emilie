@@ -36,7 +36,29 @@ function MailIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M4 7l8 6 8-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M4 7l8 6 8-6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function CartIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6 6h15l-1.5 9h-12L6 6z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M6 6L5 3H2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="9" cy="20" r="1.25" fill="currentColor" />
+      <circle cx="18" cy="20" r="1.25" fill="currentColor" />
     </svg>
   )
 }
@@ -61,13 +83,14 @@ export default function Header({
   const links = useMemo(
     () =>
       [
-        { href: "/projects", labelKey: "nav.works" as MessageKey },
-        { href: "/#about", labelKey: "nav.about" as MessageKey },
-        { href: "/shop", labelKey: "nav.shop" as MessageKey },
-        { href: "/#contact", labelKey: "nav.contact" as MessageKey },
+        { href: "/projects", labelKey: "nav.works" as MessageKey, hero: false },
+        { href: "/#about", labelKey: "nav.about" as MessageKey, hero: true },
+        { href: "/shop", labelKey: "nav.shop" as MessageKey, hero: true },
+        { href: "/#contact", labelKey: "nav.contact" as MessageKey, hero: true },
       ] as const,
     []
   )
+  const heroLinks = useMemo(() => links.filter((link) => link.hero), [links])
 
   useEffect(() => {
     if (pathName !== "/") {
@@ -136,72 +159,89 @@ export default function Header({
   }, [pathName])
 
   const showLogo = !hasHero || pastVideo
-  const showCart = pathName.startsWith("/shop") || pathName.startsWith("/checkout")
+  const onHeroLanding = hasHero && !pastVideo
+  const onShop =
+    pathName.startsWith("/shop") || pathName.startsWith("/checkout")
+  const showCart = onShop && count > 0
+  const langOnRight = !onHeroLanding
+
+  const langSwitch = (
+    <div className="lang-switch" role="group" aria-label="Language">
+      <button
+        type="button"
+        className={locale === "en" ? "is-active" : ""}
+        onClick={() => setLocale("en")}
+      >
+        EN
+      </button>
+      <button
+        type="button"
+        className={locale === "nb" ? "is-active" : ""}
+        onClick={() => setLocale("nb")}
+      >
+        NO
+      </button>
+    </div>
+  )
 
   return (
     <header className={`${pastVideo || !hasHero ? "scrolled" : ""}${open ? " menu-open" : ""}`}>
       <div className="wrap">
-        {showLogo ? (
-          <Link
-            href="/"
-            key={logoKey}
-            className="logo logo-enter"
-            onClick={() => {
-              setCookie(HERO_COOKIE, "1")
-              setOpen(false)
-              closeCart()
-            }}
-          >
-            {LOGO.split("").map((char, i) => (
-              <span
-                key={`${char}-${i}`}
-                className="logo-char"
-                style={{ animationDelay: `${80 + i * 55}ms` }}
-              >
-                {char}
-              </span>
-            ))}
-          </Link>
-        ) : (
-          <span className="logo-spacer" aria-hidden="true" />
-        )}
+        <div className="header-left">
+          {!langOnRight ? langSwitch : null}
+
+          {showLogo ? (
+            <Link
+              href="/"
+              key={logoKey}
+              className="logo logo-enter"
+              onClick={() => {
+                setCookie(HERO_COOKIE, "1")
+                setOpen(false)
+                closeCart()
+              }}
+            >
+              {LOGO.split("").map((char, i) => (
+                <span
+                  key={`${char}-${i}`}
+                  className="logo-char"
+                  style={{ animationDelay: `${80 + i * 55}ms` }}
+                >
+                  {char}
+                </span>
+              ))}
+            </Link>
+          ) : null}
+        </div>
 
         <div className="header-actions">
           {showCart ? (
-            <button type="button" className="cart-trigger" onClick={toggleCart}>
-              {t("nav.cart")}
-              {count > 0 ? ` (${count})` : ""}
+            <button
+              type="button"
+              className="cart-trigger"
+              onClick={toggleCart}
+              aria-label={count > 0 ? `${t("nav.cart")} (${count})` : t("nav.cart")}
+            >
+              <CartIcon />
+              {count > 0 ? <span className="cart-count">{count}</span> : null}
             </button>
           ) : null}
 
-<div className="lang-switch" role="group" aria-label="Language">
-            <button
-              type="button"
-              className={locale === "en" ? "is-active" : ""}
-              onClick={() => setLocale("en")}
-            >
-              EN
-            </button>
-            <button
-              type="button"
-              className={locale === "nb" ? "is-active" : ""}
-              onClick={() => setLocale("nb")}
-            >
-              NO
-            </button>
-          </div>
-
-          {!pastVideo && hasHero ? (
+          {onHeroLanding ? (
             <nav className="nav-inline">
               <ul>
-                {links.map((link) => (
+                {heroLinks.map((link) => (
                   <li key={link.href}>
                     <Link href={link.href}>{t(link.labelKey)}</Link>
                   </li>
                 ))}
               </ul>
             </nav>
-          ) : (
+          ) : null}
+
+          {langOnRight ? langSwitch : null}
+
+          {!onHeroLanding ? (
             <button
               type="button"
               className={`menu-toggle${open ? " open" : ""}`}
@@ -212,14 +252,12 @@ export default function Header({
               <span />
               <span />
             </button>
-          )}
-
-        
+          ) : null}
         </div>
       </div>
 
-      {(pastVideo || !hasHero) && (
-        <div className={`menu-panel${open ? " open pl-5" : ""}`}>
+      {!onHeroLanding ? (
+        <div className={`menu-panel${open ? " open" : ""}`}>
           <nav className="wrap">
             <div className="menu-social">
               <a
@@ -256,7 +294,7 @@ export default function Header({
             </ul>
           </nav>
         </div>
-      )}
+      ) : null}
     </header>
   )
 }

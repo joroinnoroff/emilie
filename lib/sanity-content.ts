@@ -25,6 +25,12 @@ export type SiteSettings = {
   contactIntroNb?: string
   newsletterIntro?: string
   newsletterIntroNb?: string
+  commissionHeading?: string
+  commissionHeadingNb?: string
+  commissionBody?: string[]
+  commissionBodyNb?: string[]
+  commissionCta?: string
+  commissionCtaNb?: string
   deliveryOptions?: DeliveryOption[]
 }
 
@@ -62,6 +68,22 @@ export const defaultSiteSettings: SiteSettings = {
     "Tilgjengelig for private henvendelser, bestillingsverk og utstillingssamarbeid. Basert i Norge, sender internasjonalt.",
   newsletterIntro: "Subscribe for the latest exhibitions and creations.",
   newsletterIntroNb: "Abonner for siste utstillinger og verk.",
+  commissionHeading: "Looking for a Custom Artwork?",
+  commissionHeadingNb: "Ønsker du et verk?",
+  commissionBody: [
+    "Do you have an idea, a memory, or a subject you'd like to see interpreted through my artistic style? I accept a limited number of commissioned pieces, allowing us to create a one-of-a-kind painting tailored specifically to your vision.",
+    "The process begins with a consultation, either in person or over FaceTime, where we explore your ideas together. We'll look through my previous works, discuss which pieces resonate with you and why, and talk about the colours, composition, atmosphere, and any specific elements you'd like your painting to include.",
+    "To reserve a commission, a 5,000 NOK deposit is required. This covers the consultation, planning process, my time, and the canvas used for the artwork. The remaining balance is paid upon completion and delivery of the finished painting.",
+    "The final price is based on the size and complexity of the artwork and follows the same pricing structure as my existing collection. If you're interested in creating something unique together, I'd be happy to schedule an initial consultation.",
+  ],
+  commissionBodyNb: [
+    "Har du en idé, et minne eller et motiv du ønsker å få tolket gjennom min kunst? Jeg tar imot et begrenset antall kommisjonsoppdrag, hvor vi sammen skaper et unikt maleri med utgangspunkt i min visuelle stil.",
+    "Prosessen starter med en samtale – enten fysisk eller via FaceTime – hvor vi blir kjent med ideen din. Vi ser gjennom tidligere verk, finner ut hvilke uttrykk, farger og komposisjoner du trekkes mot, og snakker om motiv, størrelse og stemningen du ønsker at maleriet skal formidle.",
+    "For å reservere et kommisjonsoppdrag betales et depositum på 5 000 kr. Depositumet dekker planleggingsprosessen, min tid og lerretet som brukes til verket. Når arbeidet er ferdigstilt og klart for overlevering, betales det resterende beløpet.",
+    "Prisen på et kommisjonsverk følger samme nivå som mine øvrige malerier og varierer ut fra størrelse og omfang. Ta gjerne kontakt dersom du ønsker et uforpliktende møte for å diskutere ideen din.",
+  ],
+  commissionCta: "Contact",
+  commissionCtaNb: "Kontakt",
   deliveryOptions: [
     {
       key: "pickup",

@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import Hero from "@/components/Hero";
 import WorksSection from "@/components/WorksSection";
 import About from "@/components/About";
 import Shop from "@/components/Shop";
+import Commission from "@/components/Commission";
 import Newsletter from "@/components/Newsletter";
 import Contact from "@/components/Contact";
 import {
@@ -25,8 +27,11 @@ export default async function Home() {
       <WorksSection works={featuredWorks} />
       <About content={about} />
       <Shop items={shopWorks.slice(0, 4)} />
+      <Commission settings={settings} />
       <Newsletter settings={settings} />
-      <Contact settings={settings} />
+      <Suspense fallback={null}>
+        <Contact settings={settings} />
+      </Suspense>
     </>
   );
 }

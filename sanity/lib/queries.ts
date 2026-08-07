@@ -82,6 +82,12 @@ export const siteSettingsQuery = groq`
     contactIntroNb,
     newsletterIntro,
     newsletterIntroNb,
+    commissionHeading,
+    commissionHeadingNb,
+    commissionBody,
+    commissionBodyNb,
+    commissionCta,
+    commissionCtaNb,
     deliveryOptions[]{
       key,
       label,
