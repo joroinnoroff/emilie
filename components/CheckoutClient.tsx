@@ -12,20 +12,25 @@ import { useLocale } from "@/lib/LocaleProvider"
 import { checkoutCurrency } from "@/lib/i18n"
 import type { DeliveryOption } from "@/lib/sanity-content"
 import { localized } from "@/lib/sanity-content"
+import type { BringPickupPoint, BringShippingOption } from "@/lib/bring"
 import { btnClass, cn, fieldClass } from "./ui"
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
 )
 
-const DEFAULT_LABELS: Record<string, { en: string; nb: string }> = {
-  pickup: { en: "Pick-up in Oslo", nb: "Henting i Oslo" },
-  norway: { en: "Shipping in Norway", nb: "Frakt i Norge" },
-  abroad: { en: "Shipping abroad", nb: "Frakt til utlandet" },
-}
-
 type CheckoutClientProps = {
   deliveryOptions: DeliveryOption[]
+}
+
+type SelectedDelivery = {
+  key: string
+  label: string
+  priceNok: number
+  priceEur: number
+  productId?: string
+  pickupPointId?: string
+  pickupPointName?: string
 }
 
 export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps) {
@@ -36,26 +41,72 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
   const [step, setStep] = useState<"info" | "payment">("info")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [postalCode, setPostalCode] = useState("")
+  const [street, setStreet] = useState("")
   const [deliveryKey, setDeliveryKey] = useState<string>("")
+  const [bringOptions, setBringOptions] = useState<BringShippingOption[]>([])
+  const [pickupPoints, setPickupPoints] = useState<BringPickupPoint[]>([])
+  const [pickupPointId, setPickupPointId] = useState("")
+  const [bringLoading, setBringLoading] = useState(false)
+  const [bringError, setBringError] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [loadingCheckout, setLoadingCheckout] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const linesSnapshot = useRef(lines)
-
   const [retryToken, setRetryToken] = useState(0)
 
-  // Keep a snapshot for Stripe after navigating steps (cart stays until success)
   useEffect(() => {
     if (lines.length) linesSnapshot.current = lines
   }, [lines])
 
-  const options = useMemo(
-    () => (deliveryOptions || []).filter((o) => o.enabled !== false && o.key),
-    [deliveryOptions]
+  const studioPickup = useMemo(() => {
+    const opt = (deliveryOptions || []).find(
+      (o) => o.enabled !== false && o.key === "pickup"
+    )
+    if (!opt) return null
+    return {
+      key: "pickup",
+      label:
+        localized(locale, opt.label || "Pick-up in Oslo", opt.labelNb || "Henting i Oslo") ||
+        "Henting i Oslo",
+      priceNok: opt.priceNok,
+      priceEur: opt.priceEur,
+    } satisfies SelectedDelivery
+  }, [deliveryOptions, locale])
+
+  const activeLines = lines.length ? lines : linesSnapshot.current
+
+  const weightGrams = useMemo(
+    () =>
+      Math.max(
+        1000,
+        activeLines.reduce((sum, l) => sum + l.qty * (l.variant === "original" ? 3500 : 800), 0)
+      ),
+    [activeLines]
   )
 
-  const selectedDelivery = options.find((o) => o.key === deliveryKey)
-  const activeLines = lines.length ? lines : linesSnapshot.current
+  const selectedBring = bringOptions.find((o) => o.key === deliveryKey)
+  const selectedPickup = pickupPoints.find((p) => p.id === pickupPointId)
+
+  const selectedDelivery: SelectedDelivery | null = useMemo(() => {
+    if (deliveryKey === "pickup" && studioPickup) return studioPickup
+    if (!selectedBring) return null
+    return {
+      key: selectedBring.key,
+      label:
+        locale === "nb"
+          ? selectedBring.labelNb || selectedBring.label
+          : selectedBring.label || selectedBring.labelNb,
+      priceNok: selectedBring.priceNok,
+      priceEur: selectedBring.priceEur,
+      productId: selectedBring.productId,
+      pickupPointId: selectedBring.key === "bring_pickup" ? pickupPointId : undefined,
+      pickupPointName:
+        selectedBring.key === "bring_pickup" && selectedPickup
+          ? `${selectedPickup.name}, ${selectedPickup.address}, ${selectedPickup.postalCode} ${selectedPickup.city}`
+          : undefined,
+    }
+  }, [deliveryKey, studioPickup, selectedBring, pickupPointId, selectedPickup, locale])
 
   const itemsTotal = useMemo(
     () =>
@@ -75,21 +126,87 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
 
   const grandTotal = itemsTotal + deliveryTotal
 
-  const deliveryLabel = (opt: DeliveryOption) => {
-    const fallback = DEFAULT_LABELS[opt.key]
-    return (
-      localized(locale, opt.label || fallback?.en, opt.labelNb || fallback?.nb) ||
-      opt.key
-    )
-  }
+  // Fetch Bring rates + pickup points when entering payment with a postal code
+  useEffect(() => {
+    if (step !== "payment") return
+    if (!/^\d{4}$/.test(postalCode.trim())) return
+
+    let cancelled = false
+    setBringLoading(true)
+    setBringError(null)
+
+    ;(async () => {
+      try {
+        const [shipRes, pointsRes] = await Promise.all([
+          fetch("/api/bring/shipping", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              postalCode: postalCode.trim(),
+              weightGrams,
+              language: locale === "nb" ? "NO" : "EN",
+            }),
+          }),
+          fetch(
+            `/api/bring/pickup-points?postalCode=${encodeURIComponent(postalCode.trim())}${
+              street.trim() ? `&street=${encodeURIComponent(street.trim())}` : ""
+            }`
+          ),
+        ])
+
+        const shipData = (await shipRes.json()) as {
+          options?: BringShippingOption[]
+          error?: string
+        }
+        const pointsData = (await pointsRes.json()) as {
+          points?: BringPickupPoint[]
+          error?: string
+        }
+
+        if (cancelled) return
+
+        if (!shipRes.ok) {
+          setBringError(
+            shipData.error ||
+              (locale === "nb"
+                ? "Kunne ikke hente fraktpriser fra Bring."
+                : "Could not load Bring shipping prices.")
+          )
+          setBringOptions([])
+        } else {
+          setBringOptions(shipData.options || [])
+          if (!deliveryKey && (shipData.options?.length || studioPickup)) {
+            setDeliveryKey(shipData.options?.[0]?.key || "pickup")
+          }
+        }
+
+        setPickupPoints(pointsData.points || [])
+        if (pointsData.points?.[0] && !pickupPointId) {
+          setPickupPointId(pointsData.points[0].id)
+        }
+      } catch {
+        if (!cancelled) {
+          setBringError(
+            locale === "nb"
+              ? "Nettverksfeil mot Bring."
+              : "Network error talking to Bring."
+          )
+        }
+      } finally {
+        if (!cancelled) setBringLoading(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, postalCode, street, weightGrams, locale])
 
   useEffect(() => {
     if (step !== "payment") return
-    if (!deliveryKey) {
-      if (options[0]) setDeliveryKey(options[0].key)
-      return
-    }
-    if (!selectedDelivery || !email.trim() || !activeLines.length) return
+    if (!deliveryKey || !selectedDelivery || !email.trim() || !activeLines.length) return
+    if (deliveryKey === "bring_pickup" && !pickupPointId) return
 
     let cancelled = false
     setLoadingCheckout(true)
@@ -103,9 +220,15 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
       name: name.trim(),
       delivery: {
         key: selectedDelivery.key,
-        label: deliveryLabel(selectedDelivery),
+        label: selectedDelivery.pickupPointName
+          ? `${selectedDelivery.label} — ${selectedDelivery.pickupPointName}`
+          : selectedDelivery.label,
         priceNok: selectedDelivery.priceNok,
         priceEur: selectedDelivery.priceEur,
+        productId: selectedDelivery.productId || "",
+        pickupPointId: selectedDelivery.pickupPointId || "",
+        pickupPointName: selectedDelivery.pickupPointName || "",
+        postalCode: postalCode.trim(),
       },
       lines: activeLines.map((l) => ({
         id: l.id,
@@ -134,7 +257,6 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
         }
         setClientSecret(data.clientSecret)
       } catch {
-        // ERR_NETWORK_CHANGED / flaky Wi‑Fi — retry a couple times
         if (!cancelled && attempt < 3) {
           await new Promise((r) => setTimeout(r, 600 * attempt))
           if (!cancelled) return fetchCheckout(attempt + 1)
@@ -158,9 +280,8 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
     return () => {
       cancelled = true
     }
-    // intentionally recreate when delivery / step / currency / retry changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, deliveryKey, currency, locale, retryToken])
+  }, [step, deliveryKey, pickupPointId, currency, locale, retryToken, postalCode])
 
   const continueToPayment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -173,7 +294,14 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
       setError(locale === "nb" ? "Ugyldig e-post." : "Invalid email.")
       return
     }
-    if (!deliveryKey && options[0]) setDeliveryKey(options[0].key)
+    if (!/^\d{4}$/.test(postalCode.trim())) {
+      setError(
+        locale === "nb"
+          ? "Skriv inn et gyldig postnummer (4 siffer) for frakt."
+          : "Enter a valid 4-digit postal code for shipping."
+      )
+      return
+    }
     setStep("payment")
   }
 
@@ -252,6 +380,35 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                   className={fieldClass}
                 />
               </label>
+              <label className="flex flex-col gap-1.5 text-sm text-ink-soft">
+                <span>{locale === "nb" ? "Postnummer" : "Postal code"}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{4}"
+                  maxLength={4}
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  autoComplete="postal-code"
+                  required
+                  className={fieldClass}
+                  placeholder="0150"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5 text-sm text-ink-soft">
+                <span>
+                  {locale === "nb"
+                    ? "Gateadresse (valgfritt, bedre hentesteder)"
+                    : "Street (optional, better pickup results)"}
+                </span>
+                <input
+                  type="text"
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  autoComplete="street-address"
+                  className={fieldClass}
+                />
+              </label>
               {error ? <p className="text-sm text-red-700">{error}</p> : null}
               <button type="submit" className={`${btnClass} self-start`}>
                 {locale === "nb" ? "Fortsett" : "Continue"}
@@ -262,40 +419,142 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
               <h2 className="mb-4 text-2xl tracking-tight">
                 {locale === "nb" ? "Levering" : "Delivery"}
               </h2>
-              <div className="mb-8 flex flex-col gap-2" role="radiogroup">
-                {options.map((opt) => {
+              <p className="mb-4 text-sm text-ink-soft">
+                {locale === "nb"
+                  ? `Priser via Bring for ${postalCode}`
+                  : `Bring rates for ${postalCode}`}
+              </p>
+
+              {bringLoading ? (
+                <p className="mb-4 text-sm text-ink-soft">
+                  {locale === "nb" ? "Henter fraktpriser…" : "Loading shipping prices…"}
+                </p>
+              ) : null}
+              {bringError ? (
+                <p className="mb-4 text-sm text-red-700">{bringError}</p>
+              ) : null}
+
+              <div className="mb-6 flex flex-col gap-2" role="radiogroup">
+                {studioPickup ? (
+                  <label
+                    className={cn(
+                      "flex cursor-pointer items-center gap-3 border px-4 py-3",
+                      deliveryKey === "pickup" ? "border-ink" : "border-line"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="delivery"
+                      value="pickup"
+                      checked={deliveryKey === "pickup"}
+                      onChange={() => {
+                        setDeliveryKey("pickup")
+                        setClientSecret(null)
+                      }}
+                      className="accent-ink"
+                    />
+                    <span className="flex flex-1 items-baseline justify-between gap-4">
+                      <strong className="font-medium">{studioPickup.label}</strong>
+                      <em className="not-italic text-ink-soft">
+                        {locale === "nb" ? "Gratis" : "Free"}
+                      </em>
+                    </span>
+                  </label>
+                ) : null}
+
+                {bringOptions.map((opt) => {
                   const price = money({
                     priceNok: opt.priceNok,
                     priceEur: opt.priceEur,
                   })
-                  const free =
-                    (currency === "nok" ? opt.priceNok : opt.priceEur) === 0
+                  const title = locale === "nb" ? opt.labelNb || opt.label : opt.label
                   return (
                     <label
                       key={opt.key}
                       className={cn(
-                        "flex cursor-pointer items-center gap-3 border px-4 py-3",
+                        "flex cursor-pointer flex-col gap-1 border px-4 py-3",
                         deliveryKey === opt.key ? "border-ink" : "border-line"
                       )}
                     >
-                      <input
-                        type="radio"
-                        name="delivery"
-                        value={opt.key}
-                        checked={deliveryKey === opt.key}
-                        onChange={() => setDeliveryKey(opt.key)}
-                        className="accent-ink"
-                      />
-                      <span className="flex flex-1 items-baseline justify-between gap-4">
-                        <strong className="font-medium">{deliveryLabel(opt)}</strong>
-                        <em className="not-italic text-ink-soft">
-                          {free ? (locale === "nb" ? "Gratis" : "Free") : price}
-                        </em>
+                      <span className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="delivery"
+                          value={opt.key}
+                          checked={deliveryKey === opt.key}
+                          onChange={() => {
+                            setDeliveryKey(opt.key)
+                            setClientSecret(null)
+                          }}
+                          className="accent-ink"
+                        />
+                        <span className="flex flex-1 items-baseline justify-between gap-4">
+                          <strong className="font-medium">{title}</strong>
+                          <em className="not-italic text-ink-soft">{price}</em>
+                        </span>
                       </span>
+                      {opt.expectedDelivery ? (
+                        <span className="pl-7 text-xs text-ink-soft">
+                          {locale === "nb" ? "Forventet" : "Expected"}:{" "}
+                          {opt.expectedDelivery}
+                        </span>
+                      ) : null}
                     </label>
                   )
                 })}
               </div>
+
+              {deliveryKey === "bring_pickup" ? (
+                <div className="mb-8">
+                  <h3 className="mb-3 text-lg tracking-tight">
+                    {locale === "nb" ? "Velg hentested" : "Choose pickup point"}
+                  </h3>
+                  {pickupPoints.length === 0 ? (
+                    <p className="text-sm text-ink-soft">
+                      {locale === "nb"
+                        ? "Ingen hentesteder funnet for dette postnummeret."
+                        : "No pickup points found for this postal code."}
+                    </p>
+                  ) : (
+                    <div className="flex max-h-[280px] flex-col gap-2 overflow-auto">
+                      {pickupPoints.map((p) => (
+                        <label
+                          key={p.id}
+                          className={cn(
+                            "flex cursor-pointer gap-3 border px-3 py-2.5 text-sm",
+                            pickupPointId === p.id ? "border-ink" : "border-line"
+                          )}
+                        >
+                          <input
+                            type="radio"
+                            name="pickupPoint"
+                            value={p.id}
+                            checked={pickupPointId === p.id}
+                            onChange={() => {
+                              setPickupPointId(p.id)
+                              setClientSecret(null)
+                            }}
+                            className="mt-1 accent-ink"
+                          />
+                          <span className="min-w-0 flex-1">
+                            <strong className="font-medium">{p.name}</strong>
+                            <span className="mt-0.5 flex items-baseline justify-between gap-4 text-ink-soft">
+                              <span className="min-w-0">
+                                {p.address}, {p.postalCode} {p.city}
+                              </span>
+                              {p.distanceInKm ? (
+                                <span className="shrink-0 whitespace-nowrap">
+                                  {p.distanceInKm} km
+                                </span>
+                              ) : null}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
 
               <h2 className="mb-4 text-2xl tracking-tight">
                 {locale === "nb" ? "Betaling" : "Payment"}
@@ -306,7 +565,10 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                   <p className="text-sm text-red-700">{error}</p>
                   <button
                     type="button"
-                    className={cn(btnClass, "border-line text-ink-soft hover:border-ink hover:bg-transparent hover:text-ink")}
+                    className={cn(
+                      btnClass,
+                      "border-line text-ink-soft hover:border-ink hover:bg-transparent hover:text-ink"
+                    )}
                     onClick={() => {
                       setError(null)
                       setRetryToken((n) => n + 1)
@@ -352,22 +614,17 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                     setClientSecret(null)
                     setError(null)
                   }}
-                  aria-label={locale === "nb" ? "Rediger opplysninger" : "Edit details"}
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path
-                      d="M10 3L5 8l5 5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
                   {locale === "nb" ? "Rediger" : "Edit"}
                 </button>
               </div>
               {name.trim() ? <p className="text-sm">{name.trim()}</p> : null}
               {email.trim() ? <p className="text-sm text-ink-soft">{email.trim()}</p> : null}
+              {postalCode.trim() ? (
+                <p className="text-sm text-ink-soft">
+                  {locale === "nb" ? "Postnr." : "Postal"} {postalCode.trim()}
+                </p>
+              ) : null}
             </div>
           ) : null}
 
@@ -401,7 +658,12 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
           </ul>
           {selectedDelivery ? (
             <div className="mb-3 flex justify-between gap-3 border-t border-line pt-3 text-sm text-ink-soft">
-              <span>{deliveryLabel(selectedDelivery)}</span>
+              <span className="max-w-[70%]">
+                {selectedDelivery.label}
+                {selectedDelivery.pickupPointName
+                  ? ` · ${selectedPickup?.name || ""}`
+                  : ""}
+              </span>
               <span>
                 {deliveryTotal === 0
                   ? locale === "nb"

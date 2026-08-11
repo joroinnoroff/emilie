@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import CheckoutSuccessClient from "@/components/CheckoutSuccessClient"
 
@@ -6,5 +7,9 @@ export const metadata: Metadata = {
 }
 
 export default function CheckoutSuccessPage() {
-  return <CheckoutSuccessClient />
+  return (
+    <Suspense fallback={null}>
+      <CheckoutSuccessClient />
+    </Suspense>
+  )
 }

@@ -7,12 +7,14 @@ export default function FullscreenImage({
   src,
   alt,
   scale = 1,
+  origin = "top right",
   className,
 }: {
   src: string
   alt: string
   /** 1 = full size; lower values shrink on scroll (Henrik-style) */
   scale?: number
+  origin?: string
   className?: string
 }) {
   const [open, setOpen] = useState(false)
@@ -39,9 +41,9 @@ export default function FullscreenImage({
         )}
         style={{
           transform: `scale(${scale})`,
-          transformOrigin: "top right",
+          transformOrigin: origin,
           transition: "transform 0.12s linear",
-          zIndex: scale < 0.95 ? 30 : 10,
+          zIndex: scale < 0.95 ? 40 : 10,
         }}
       >
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#f0f0f0]">

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { getShopWorks, getWorkBySlug } from "@/sanity/lib/fetch"
+import { getShopSiblings, getShopWorks, getWorkBySlug } from "@/sanity/lib/fetch"
 import ProductDetailView from "@/components/ProductDetailView"
 
 export async function generateStaticParams() {
@@ -27,5 +27,7 @@ export default async function ProductDetail({
   const product = await getWorkBySlug(id)
   if (!product) return notFound()
 
-  return <ProductDetailView product={product} />
+  const { prev, next } = await getShopSiblings(product.id)
+
+  return <ProductDetailView product={product} prev={prev} next={next} />
 }

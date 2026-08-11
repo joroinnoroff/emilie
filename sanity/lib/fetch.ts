@@ -263,3 +263,12 @@ export async function getWorkSiblings(id: string): Promise<{ prev: Project; next
   const next = works[(safeIdx + 1) % works.length]
   return { prev, next }
 }
+
+export async function getShopSiblings(id: string): Promise<{ prev: Project; next: Project }> {
+  const works = await getShopWorks()
+  const idx = works.findIndex((p) => p.id === id)
+  const safeIdx = idx < 0 ? 0 : idx
+  const prev = works[(safeIdx - 1 + works.length) % works.length]
+  const next = works[(safeIdx + 1) % works.length]
+  return { prev, next }
+}

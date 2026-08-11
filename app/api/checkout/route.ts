@@ -18,6 +18,10 @@ type DeliveryPayload = {
   label: string
   priceNok: number
   priceEur: number
+  productId?: string
+  pickupPointId?: string
+  pickupPointName?: string
+  postalCode?: string
 }
 
 export async function POST(req: Request) {
@@ -134,6 +138,10 @@ export async function POST(req: Request) {
         customerName: body.name || "",
         delivery: body.delivery.key,
         deliveryLabel: body.delivery.label,
+        bringProductId: body.delivery.productId || "",
+        pickupPointId: body.delivery.pickupPointId || "",
+        pickupPointName: (body.delivery.pickupPointName || "").slice(0, 450),
+        postalCode: body.delivery.postalCode || "",
       },
     })
 
