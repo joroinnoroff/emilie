@@ -6,6 +6,7 @@ import { useCart } from "./CartProvider"
 import { usePathname } from "next/navigation"
 import { useLocale } from "@/lib/LocaleProvider"
 import type { MessageKey } from "@/lib/i18n"
+import { Wrap, cn } from "./ui"
 
 const LOGO = "Emilie"
 const HERO_COOKIE = "emilie-needs-hero-top"
@@ -76,6 +77,7 @@ export default function Header({
   const [hasHero, setHasHero] = useState(false)
   const [open, setOpen] = useState(false)
   const [logoKey, setLogoKey] = useState(0)
+  const [aboutTheme, setAboutTheme] = useState(false)
   const { count, toggleCart, closeCart } = useCart()
   const pathName = usePathname()
   const { locale, setLocale, t } = useLocale()
@@ -93,11 +95,25 @@ export default function Header({
   const heroLinks = useMemo(() => links.filter((link) => link.hero), [links])
 
   useEffect(() => {
+    const syncAboutTheme = () => {
+      setAboutTheme(document.documentElement.dataset.aboutTheme === "1")
+    }
+    syncAboutTheme()
+    const observer = new MutationObserver(syncAboutTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-about-theme"],
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
     if (pathName !== "/") {
       setCookie(HERO_COOKIE, "1")
       setHasHero(false)
       setPastVideo(true)
       setOpen(false)
+      setAboutTheme(false)
     }
   }, [pathName])
 
@@ -164,19 +180,45 @@ export default function Header({
     pathName.startsWith("/shop") || pathName.startsWith("/checkout")
   const showCart = onShop && count > 0
   const langOnRight = !onHeroLanding
+  const scrolled = pastVideo || !hasHero
 
   const langSwitch = (
-    <div className="lang-switch" role="group" aria-label="Language">
+    <div
+      className={cn(
+        "inline-flex shrink-0 items-center gap-2",
+        !langOnRight && "max-[1100px]:ml-3.5 max-[760px]:ml-[18px]"
+      )}
+      role="group"
+      aria-label="Language"
+    >
       <button
         type="button"
-        className={locale === "en" ? "is-active" : ""}
+        className={cn(
+          "cursor-pointer border-0 bg-transparent p-0 font-inherit text-sm transition-colors duration-500",
+          aboutTheme
+            ? locale === "en"
+              ? "border-b border-white text-white"
+              : "text-white/70"
+            : locale === "en"
+              ? "border-b border-ink text-ink"
+              : "text-ink-soft"
+        )}
         onClick={() => setLocale("en")}
       >
         EN
       </button>
       <button
         type="button"
-        className={locale === "nb" ? "is-active" : ""}
+        className={cn(
+          "cursor-pointer border-0 bg-transparent p-0 font-inherit text-sm transition-colors duration-500",
+          aboutTheme
+            ? locale === "nb"
+              ? "border-b border-white text-white"
+              : "text-white/70"
+            : locale === "nb"
+              ? "border-b border-ink text-ink"
+              : "text-ink-soft"
+        )}
         onClick={() => setLocale("nb")}
       >
         NO
@@ -185,16 +227,29 @@ export default function Header({
   )
 
   return (
-    <header className={`${pastVideo || !hasHero ? "scrolled" : ""}${open ? " menu-open" : ""}`}>
-      <div className="wrap">
-        <div className="header-left">
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-[200] py-[22px] transition-colors duration-500",
+        aboutTheme
+          ? "bg-about text-white"
+          : scrolled || open
+            ? "bg-white text-ink"
+            : "bg-transparent text-ink",
+        open && "z-[400]"
+      )}
+    >
+      <Wrap className="relative z-[2] flex items-center justify-between gap-4">
+        <div className="flex min-w-0 shrink-0 items-center gap-4">
           {!langOnRight ? langSwitch : null}
 
           {showLogo ? (
             <Link
               href="/"
               key={logoKey}
-              className="logo logo-enter"
+              className={cn(
+                "inline-flex min-w-16 text-xl font-medium transition-colors duration-500",
+                aboutTheme ? "text-white" : "text-ink"
+              )}
               onClick={() => {
                 setCookie(HERO_COOKIE, "1")
                 setOpen(false)
@@ -214,25 +269,47 @@ export default function Header({
           ) : null}
         </div>
 
-        <div className="header-actions">
+        <div className="ml-auto flex min-w-0 items-center gap-[18px]">
           {showCart ? (
             <button
               type="button"
-              className="cart-trigger"
+              className={cn(
+                "relative inline-flex shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent p-0 transition-colors duration-500 hover:opacity-55",
+                aboutTheme ? "text-white" : "text-ink"
+              )}
               onClick={toggleCart}
               aria-label={count > 0 ? `${t("nav.cart")} (${count})` : t("nav.cart")}
             >
               <CartIcon />
-              {count > 0 ? <span className="cart-count">{count}</span> : null}
+              {count > 0 ? (
+                <span
+                  className={cn(
+                    "absolute -top-1.5 -right-2 min-w-4 rounded-full px-1 text-center text-[10px] leading-4 font-medium",
+                    aboutTheme ? "bg-white text-about" : "bg-ink text-white"
+                  )}
+                >
+                  {count}
+                </span>
+              ) : null}
             </button>
           ) : null}
 
           {onHeroLanding ? (
-            <nav className="nav-inline">
-              <ul>
+            <nav className="min-w-0">
+              <ul className="flex list-none flex-nowrap gap-7 max-[1100px]:gap-4 max-[760px]:gap-3">
                 {heroLinks.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href}>{t(link.labelKey)}</Link>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "whitespace-nowrap border-b border-transparent text-base transition-[border-color,color] duration-500 max-[1100px]:text-[0.9375rem] max-[760px]:text-sm",
+                        aboutTheme
+                          ? "text-white hover:border-white"
+                          : "text-ink hover:border-ink"
+                      )}
+                    >
+                      {t(link.labelKey)}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -244,25 +321,52 @@ export default function Header({
           {!onHeroLanding ? (
             <button
               type="button"
-              className={`menu-toggle${open ? " open" : ""}`}
+              className="relative z-[2] h-3.5 w-7 cursor-pointer border-0 bg-transparent p-0"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
             >
-              <span />
-              <span />
+              <span
+                className={cn(
+                  "menu-toggle-line menu-toggle-line-top absolute inset-x-0 top-0 h-0.5 transition-colors duration-500",
+                  aboutTheme ? "bg-white" : "bg-ink",
+                  open && "open"
+                )}
+              />
+              <span
+                className={cn(
+                  "menu-toggle-line menu-toggle-line-bottom absolute inset-x-0 bottom-0 h-0.5 transition-colors duration-500",
+                  aboutTheme ? "bg-white" : "bg-ink",
+                  open && "open"
+                )}
+              />
             </button>
           ) : null}
         </div>
-      </div>
+      </Wrap>
 
       {!onHeroLanding ? (
-        <div className={`menu-panel${open ? " open" : ""}`}>
-          <nav className="wrap">
-            <div className="menu-social">
+        <div
+          className={cn(
+            "absolute inset-x-0 top-full z-[1] max-h-0 overflow-hidden opacity-0 transition-[max-height,opacity,background-color] duration-400 ease-[cubic-bezier(0.22,0.9,0.32,1)]",
+            aboutTheme ? "bg-about" : "bg-white",
+            open && "max-h-[420px] opacity-100"
+          )}
+        >
+          <Wrap
+            as="nav"
+            className="flex items-start justify-between gap-8 pt-2 pb-7"
+          >
+            <div className="flex shrink-0 items-center justify-start gap-4 pt-1">
               <a
                 href={`mailto:${email}`}
                 aria-label="Email"
+                className={cn(
+                  "inline-flex items-center justify-center transition-colors duration-500",
+                  aboutTheme
+                    ? "text-white/75 hover:text-white"
+                    : "text-ink-soft hover:text-ink"
+                )}
                 onClick={() => setOpen(false)}
               >
                 <MailIcon />
@@ -272,16 +376,26 @@ export default function Header({
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
+                className={cn(
+                  "inline-flex items-center justify-center transition-colors duration-500",
+                  aboutTheme
+                    ? "text-white/75 hover:text-white"
+                    : "text-ink-soft hover:text-ink"
+                )}
                 onClick={() => setOpen(false)}
               >
                 <InstagramIcon />
               </a>
             </div>
-            <ul>
+            <ul className="ml-auto flex list-none flex-col items-end justify-end gap-4">
               {links.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
+                    className={cn(
+                      "text-lg transition-opacity duration-500 hover:opacity-50",
+                      aboutTheme ? "text-white" : "text-ink"
+                    )}
                     onClick={() => {
                       setOpen(false)
                       closeCart()
@@ -292,7 +406,7 @@ export default function Header({
                 </li>
               ))}
             </ul>
-          </nav>
+          </Wrap>
         </div>
       ) : null}
     </header>

@@ -42,6 +42,7 @@ export type CvItem = {
 
 export type AboutContent = {
   bio?: string[]
+  bioNb?: string[]
   education?: CvItem[]
   exhibitions?: CvItem[]
   awards?: CvItem[]
@@ -117,16 +118,26 @@ export const defaultAbout: AboutContent = {
     "My work moves between still life and dreamscape — orchids, shells, birds, and everyday objects placed in soft, cloud-lit environments that feel just slightly out of time. Each painting begins as a study of a single object and grows into a quiet scene about memory, care, and the tension between abundance and absence.",
     "Working primarily in oil on canvas, I'm drawn to coastal light, classical staging, and symbols borrowed from surrealism — thresholds, orbs, and the space between interior and horizon.",
   ],
+  bioNb: [
+    "Arbeidene mine utforsker rommet mellom det gjenkjennelige og det forestilte. Jeg henter inspirasjon fra hverdagslige objekter, naturformer og øyeblikk som bærer med seg en følelse av minner — og setter dem sammen til rolige, drømmende komposisjoner.",
+    "Jeg arbeider hovedsakelig med olje på lerret, og utforsker forholdet mellom farge, form, lys og symbolikk. I maleriene kombinerer jeg ofte elementer fra naturen med geometriske former og nøye oppbygde rom. Resultatet er scener som føles både kjente og litt forskjøvet fra virkeligheten.",
+    "Prosessen starter med observasjon, men det ferdige maleriet handler ikke nødvendigvis om å gjengi det jeg ser. Jeg er mer opptatt av følelsen som oppstår. Hvordan farger og komposisjon kan vekke minner, følelser og assosiasjoner uten at bildet trenger å fortelle én bestemt historie.",
+  ],
   education: [
-    { year: "2023–2025", title: "[MFA Fine Art]", detail: "[Academy Name]" },
-    { year: "2019–2022", title: "[BA Visual Art]", detail: "[University Name]" },
+    {
+      year: "",
+      title: "Einar Granum Kunstfagskole",
+      detail: "Visuelle kunstfag, Oslo",
+    },
   ],
   exhibitions: [
-    { year: "2025", title: "[Exhibition Title]", detail: "Solo, [Gallery], Oslo" },
-    { year: "2024", title: "[Exhibition Title]", detail: "Group, [Gallery], Bergen" },
-    { year: "2023", title: "[Exhibition Title]", detail: "Group, [Gallery], Copenhagen" },
+    {
+      year: "2025",
+      title: "Sommerutstilling",
+      detail: "Galleri Tjøme, 25. juli — 08. august",
+    },
   ],
-  awards: [{ year: "2024", title: "[Award Name]", detail: "[Institution]" }],
+  awards: [],
 }
 
 /** Pick EN or NO Sanity string with fallback. */

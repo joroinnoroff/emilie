@@ -21,17 +21,17 @@ function offerLabel(
 
 type Facet = "all" | "size" | "type" | "price" | "year" | "series" | "prints"
 
-const PRIMARY: { value: Facet; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "size", label: "Size" },
-  { value: "type", label: "Type" },
-  { value: "price", label: "Price" },
-  { value: "prints", label: "Prints" },
+const PRIMARY: { value: Facet; labelKey: "shop.filter.all" | "shop.filter.size" | "shop.filter.type" | "shop.filter.price" | "shop.filter.prints" }[] = [
+  { value: "all", labelKey: "shop.filter.all" },
+  { value: "size", labelKey: "shop.filter.size" },
+  { value: "type", labelKey: "shop.filter.type" },
+  { value: "price", labelKey: "shop.filter.price" },
+  { value: "prints", labelKey: "shop.filter.prints" },
 ]
 
-const EXTRA: { value: Facet; label: string }[] = [
-  { value: "year", label: "Year" },
-  { value: "series", label: "Series" },
+const EXTRA: { value: Facet; labelKey: "shop.filter.year" | "shop.filter.series" }[] = [
+  { value: "year", labelKey: "shop.filter.year" },
+  { value: "series", labelKey: "shop.filter.series" },
 ]
 
 const PRICE_BUCKETS = [
@@ -158,27 +158,33 @@ export default function ProductFilter({ products }: { products: Project[] }) {
 
   return (
     <>
-      <div className="flex justify-between items-baseline gap-4 mb-2 min-w-0">
-        <h1 className="min-w-0 break-words">All art for sale</h1>
-        <span className="text-ink-soft shrink-0">({visible.length})</span>
+      <div className="mb-2 flex min-w-0 items-baseline justify-between gap-4">
+        <h1 className="min-w-0 break-words text-[clamp(2.25rem,5vw,4rem)] tracking-tight">
+          {t("shop.allTitle")}
+        </h1>
+        <span className="shrink-0 text-ink-soft">({visible.length})</span>
       </div>
 
-      <div className="shop-filter-bar sticky top-[var(--header-height)] z-[150] bg-white py-3 mb-6">
-        <div className="filterComp flex flex-wrap gap-x-3 gap-y-2 items-center">
+      <div className="sticky top-[var(--header-height)] z-[150] mb-6 max-w-full bg-white py-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           {categories.map((option) => (
             <button
               key={option.value}
               type="button"
-              className={`filter-chip${facet === option.value ? " is-active" : ""}`}
+              className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-base ${
+                facet === option.value
+                  ? "border-ink text-ink"
+                  : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
+              }`}
               onClick={() => selectFacet(option.value)}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
 
           <button
             type="button"
-            className="filter-expand"
+            className="ml-1 inline-flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0 text-ink-soft hover:text-ink"
             onClick={() => setExpanded((v) => !v)}
             aria-label={expanded ? "Hide filters" : "More filters"}
             aria-expanded={expanded}
@@ -188,13 +194,17 @@ export default function ProductFilter({ products }: { products: Project[] }) {
         </div>
 
         {facet !== "all" && valueOptions.length > 0 ? (
-          <div className="filter-values flex flex-wrap gap-2 items-center mt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {facet === "price"
               ? (valueOptions as { value: string; label: string }[]).map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
-                    className={`filter-chip${value === opt.value ? " is-active" : ""}`}
+                    className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
+                      value === opt.value
+                        ? "border-ink text-ink"
+                        : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
+                    }`}
                     onClick={() => selectValue(value === opt.value ? null : opt.value)}
                   >
                     {opt.label}
@@ -204,7 +214,11 @@ export default function ProductFilter({ products }: { products: Project[] }) {
                   <button
                     key={opt}
                     type="button"
-                    className={`filter-chip${value === opt ? " is-active" : ""}`}
+                    className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
+                      value === opt
+                        ? "border-ink text-ink"
+                        : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
+                    }`}
                     onClick={() => selectValue(value === opt ? null : opt)}
                   >
                     {opt}
@@ -234,7 +248,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
                 <h2 className="min-w-0 truncate text-[1.125rem] font-medium">{product.title}</h2>
                 <span className="shrink-0 text-ink-soft text-sm">
                   {facet === "prints"
-                    ? value || "Prints"
+                    ? value || t("shop.filter.prints")
                     : product.size}
                 </span>
               </div>
@@ -250,7 +264,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
       </div>
 
       {visible.length === 0 ? (
-        <p className="text-ink-soft mb-16">No works match this filter.</p>
+        <p className="text-ink-soft mb-16">{t("shop.noMatch")}</p>
       ) : null}
     </>
   )

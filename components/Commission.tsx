@@ -4,6 +4,7 @@ import Link from "next/link"
 import type { SiteSettings } from "@/lib/sanity-content"
 import { localized } from "@/lib/sanity-content"
 import { useLocale } from "@/lib/LocaleProvider"
+import { Wrap, textLinkClass } from "./ui"
 
 type CommissionProps = {
   settings: SiteSettings
@@ -29,18 +30,22 @@ export default function Commission({ settings }: CommissionProps) {
   if (!body?.length) return null
 
   return (
-    <section className="commission" id="commission">
-      <div className="wrap">
-        <h2>{heading}</h2>
-        <div className="commission-body">
+    <section className="border-t border-line py-[100px]" id="commission">
+      <Wrap>
+        <h2 className="mb-7 max-w-[18ch] text-[clamp(2.25rem,4.2vw,3.5rem)] tracking-tight">
+          {heading}
+        </h2>
+        <div className="mb-8 flex max-w-[640px] flex-col gap-[18px]">
           {body.map((paragraph, i) => (
-            <p key={i}>{paragraph}</p>
+            <p key={i} className="text-[1.0625rem] text-ink-soft">
+              {paragraph}
+            </p>
           ))}
         </div>
-        <Link href="/?reason=commission#contact" className="btn commission-cta">
+        <Link href="/?reason=commission#contact" className={textLinkClass}>
           {cta}
         </Link>
-      </div>
+      </Wrap>
     </section>
   )
 }

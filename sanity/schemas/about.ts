@@ -7,7 +7,13 @@ export const about = defineType({
   fields: [
     defineField({
       name: "bio",
-      title: "Bio paragraphs",
+      title: "Bio paragraphs (English)",
+      type: "array",
+      of: [{ type: "text" }],
+    }),
+    defineField({
+      name: "bioNb",
+      title: "Bio paragraphs (Norwegian)",
       type: "array",
       of: [{ type: "text" }],
     }),

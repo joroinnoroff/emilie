@@ -1,51 +1,184 @@
-import type { AboutContent } from "@/lib/sanity-content";
+"use client"
+
+import Image from "next/image"
+import { useEffect, useRef, useState } from "react"
+import type { AboutContent } from "@/lib/sanity-content"
+import { useLocale } from "@/lib/LocaleProvider"
+import { cn } from "./ui"
 
 type AboutProps = {
-  content: AboutContent;
-};
+  content: AboutContent
+}
 
 function CvGroup({
   heading,
   items,
+  active,
 }: {
-  heading: string;
-  items?: { year?: string; title?: string; detail?: string }[];
+  heading: string
+  items?: { year?: string; title?: string; detail?: string }[]
+  active: boolean
 }) {
-  if (!items?.length) return null;
+  if (!items?.length) return null
 
   return (
-    <div className="cv-group">
-      <h3>{heading}</h3>
+    <div className="mb-5 last:mb-0">
+      <h3
+        className={cn(
+          "mb-3 border-t pt-2.5 text-sm transition-colors duration-500",
+          active
+            ? "border-white/35 text-white/75"
+            : "border-line text-ink-soft"
+        )}
+      >
+        {heading}
+      </h3>
       {items.map((item, i) => (
-        <div className="cv-row" key={`${item.year}-${item.title}-${i}`}>
-          <span className="yr">{item.year}</span>
-          <span className="what">
-            {item.title ? <b>{item.title}</b> : null}
+        <div
+          className="mb-2.5 flex gap-[18px] text-base"
+          key={`${item.year}-${item.title}-${i}`}
+        >
+          <span
+            className={cn(
+              "w-[90px] shrink-0 transition-colors duration-500",
+              active ? "text-white" : "text-ink"
+            )}
+          >
+            {item.year}
+          </span>
+          <span
+            className={cn(
+              "transition-colors duration-500",
+              active ? "text-white/80" : "text-ink-soft"
+            )}
+          >
+            {item.title ? (
+              <b
+                className={cn(
+                  "font-medium transition-colors duration-500",
+                  active ? "text-white" : "text-ink"
+                )}
+              >
+                {item.title}
+              </b>
+            ) : null}
             {item.title && item.detail ? " — " : null}
             {item.detail}
           </span>
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 export default function About({ content }: AboutProps) {
+  const { locale } = useLocale()
+  const sectionRef = useRef<HTMLElement>(null)
+  const [inView, setInView] = useState(false)
+
+  const bio =
+    locale === "nb"
+      ? content.bioNb?.length
+        ? content.bioNb
+        : content.bio
+      : content.bio?.length
+        ? content.bio
+        : content.bioNb
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+
+    const update = () => {
+      const { top, bottom } = el.getBoundingClientRect()
+      const active = top <= 0 && bottom > 0
+      setInView(active)
+      document.documentElement.dataset.aboutTheme = active ? "1" : ""
+    }
+
+    update()
+    window.addEventListener("scroll", update, { passive: true })
+    window.addEventListener("resize", update)
+    return () => {
+      window.removeEventListener("scroll", update)
+      window.removeEventListener("resize", update)
+      document.documentElement.dataset.aboutTheme = ""
+    }
+  }, [])
+
   return (
-    <section className="about" id="about">
-      <div className="wrap">
-        <div className="about-bio">
-          <h2>About</h2>
-          {content.bio?.map((paragraph, i) => (
-            <p key={i}>{paragraph}</p>
-          ))}
+    <section
+      ref={sectionRef}
+      id="about"
+      className={cn(
+        "min-h-[140vh] border-t transition-colors duration-500",
+        inView
+          ? "border-transparent bg-about text-white"
+          : "border-line bg-white text-ink"
+      )}
+    >
+      <div className="mx-auto grid min-h-[140vh] w-full max-w-[1480px] grid-cols-1 gap-10 px-6 pt-[100px] pb-[120px] md:grid-cols-[0.95fr_1.15fr] md:gap-14 md:px-12 lg:gap-20">
+        <div className="relative order-2 md:order-1">
+          <div className="md:sticky md:top-[88px] md:flex md:h-[calc(100vh-88px)] md:items-center">
+            <div className="relative aspect-[4/5] w-full overflow-hidden md:max-h-[78vh]">
+              <Image
+                src="/about-portrait.png"
+                alt={
+                  locale === "nb"
+                    ? "Emilie foran et av sine malerier"
+                    : "Emilie in front of one of her paintings"
+                }
+                fill
+                sizes="(max-width: 768px) 100vw, 44vw"
+                className="object-cover object-[50%_18%]"
+                priority={false}
+              />
+            </div>
+          </div>
         </div>
-        <div className="about-cv">
-          <CvGroup heading="Education" items={content.education} />
-          <CvGroup heading="Selected Exhibitions" items={content.exhibitions} />
-          <CvGroup heading="Awards" items={content.awards} />
+
+        <div className="order-1 flex flex-col justify-center md:order-2 md:py-8">
+          <h2
+            className={cn(
+              "mb-7 text-[clamp(2.75rem,6vw,4.5rem)] leading-[1.05] tracking-tight transition-colors duration-500",
+              inView ? "text-white" : "text-ink"
+            )}
+          >
+            {locale === "nb" ? "Om meg" : "About"}
+          </h2>
+          {bio?.map((paragraph, i) => (
+            <p
+              key={i}
+              className={cn(
+                "mb-[18px] max-w-[540px] text-[1.125rem] leading-relaxed transition-colors duration-500",
+                inView ? "text-white/85" : "text-ink-soft"
+              )}
+            >
+              {paragraph}
+            </p>
+          ))}
+
+          <div className="mt-5 max-w-[640px]">
+            <CvGroup
+              active={inView}
+              heading={locale === "nb" ? "Utdanning" : "Education"}
+              items={content.education}
+            />
+            <CvGroup
+              active={inView}
+              heading={
+                locale === "nb" ? "Utvalgte utstillinger" : "Selected Exhibitions"
+              }
+              items={content.exhibitions}
+            />
+            <CvGroup
+              active={inView}
+              heading={locale === "nb" ? "Priser" : "Awards"}
+              items={content.awards}
+            />
+          </div>
         </div>
       </div>
     </section>
-  );
+  )
 }

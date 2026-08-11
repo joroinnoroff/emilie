@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import type { Project } from "@/lib/projects"
-import Money from "@/components/Money"
 import { useLocale } from "@/lib/LocaleProvider"
+import { Wrap, textLinkClass } from "./ui"
 
 type ShopProps = {
   items: Project[]
@@ -27,39 +27,47 @@ export default function Shop({ items }: ShopProps) {
   const { t } = useLocale()
 
   return (
-    <section className="shop" id="shop">
-      <div className="wrap">
-        <div className="section-head">
-          <h2>Originals for Sale</h2>
+    <section className="border-t border-line pt-[140px] pb-[90px] md:pt-[160px]" id="shop">
+      <Wrap>
+        <div className="mb-10 flex items-end justify-between gap-6">
+          <h2 className="text-[clamp(2.25rem,4.2vw,3.5rem)] tracking-tight">
+            {t("shop.heading")}
+          </h2>
 
-          <Link href="/shop" className="btn">
-            All Art →
+          <Link href="/shop" className={textLinkClass}>
+            {t("shop.all")}
           </Link>
         </div>
-        <div className="shop-grid">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4 max-[860px]:grid-cols-2">
           {items.map((p) => {
             const label = offerLabel(p, t)
             return (
-              <div className="shop-card" key={p.id}>
-                <div className="shop-thumb">
+              <div key={p.id}>
+                <div className="aspect-[4/5] overflow-hidden bg-[#eee]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.image} alt={p.title} />
+                  <img
+                    src={p.image}
+                    alt={p.title}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-                <div className="shop-info">
-                  <div className="name">{p.title}</div>
-                  <div className="price">
-                    <Money priceNok={p.priceNok} priceEur={p.priceEur} />
-                  </div>
-                  {label ? <div className="status">{label}</div> : null}
-                  <Link href={`/shop/${p.id}`} className="btn">
-                    View
+                <div className="pt-4">
+                  <div className="text-xl tracking-tight">{p.title}</div>
+                  {label ? (
+                    <div className="mt-1.5 text-sm text-ink-soft">{label}</div>
+                  ) : null}
+                  <Link
+                    href={`/shop/${p.id}`}
+                    className="mt-3.5 inline-flex border-0 border-b border-ink bg-transparent p-0 pb-0.5 text-ink transition-opacity hover:opacity-50"
+                  >
+                    {t("shop.view")}
                   </Link>
                 </div>
               </div>
             )
           })}
         </div>
-      </div>
+      </Wrap>
     </section>
   )
 }

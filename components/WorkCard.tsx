@@ -1,29 +1,25 @@
-"use client";
-
-import Link from "next/link";
+import Link from "next/link"
 
 interface WorkCardProps {
-  href: string;
-  image: string;
-  title: string;
-  onHoverImage?: (src: string | null) => void;
+  href: string
+  image: string
+  title: string
 }
 
-// Deliberately minimal: no tilt, no glare, no scale. Just the image,
-// the title, and the shared colour-wash effect on the section behind it.
-export default function WorkCard({ href, image, title, onHoverImage }: WorkCardProps) {
+export default function WorkCard({ href, image, title }: WorkCardProps) {
   return (
-    <div className="work-card">
-      <Link
-        href={href}
-        onMouseEnter={() => onHoverImage?.(image)}
-        onMouseLeave={() => onHoverImage?.(null)}
-      >
-        <div className="work-thumb">
-          <img src={image} alt={title} />
+    <article className="min-w-0">
+      <Link href={href} className="block">
+        <div className="relative mb-3.5 aspect-[4/5] w-full overflow-hidden bg-[#f0f0f0]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={image}
+            alt={title}
+            className="h-full w-full object-cover"
+          />
         </div>
-        <div className="work-title">{title}</div>
+        <h2 className="text-[1.0625rem] tracking-tight text-ink">{title}</h2>
       </Link>
-    </div>
-  );
+    </article>
+  )
 }

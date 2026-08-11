@@ -12,6 +12,7 @@ import { useLocale } from "@/lib/LocaleProvider"
 import { checkoutCurrency } from "@/lib/i18n"
 import type { DeliveryOption } from "@/lib/sanity-content"
 import { localized } from "@/lib/sanity-content"
+import { btnClass, cn, fieldClass } from "./ui"
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
@@ -178,9 +179,9 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
 
   if (!activeLines.length) {
     return (
-      <div className="checkout-empty">
-        <p>{t("checkout.empty")}</p>
-        <Link href="/shop" className="btn">
+      <div className="py-10 pb-20">
+        <p className="mb-6 text-ink-soft">{t("checkout.empty")}</p>
+        <Link href="/shop" className={btnClass}>
           {t("nav.shop")}
         </Link>
       </div>
@@ -188,36 +189,48 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
   }
 
   return (
-    <div className="checkout-flow">
-      <nav className="checkout-steps" aria-label="Checkout steps">
+    <div>
+      <nav className="mb-10 flex items-center gap-3" aria-label="Checkout steps">
         <button
           type="button"
-          className={`checkout-step${step === "info" ? " is-active" : ""}`}
+          className={cn(
+            "inline-flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0 font-inherit text-sm",
+            step === "info" ? "text-ink" : "text-ink-soft"
+          )}
           onClick={() => {
             setStep("info")
             setClientSecret(null)
           }}
         >
-          <span className="checkout-step-num">1</span>
+          <span className="inline-flex h-6 w-6 items-center justify-center border border-current text-xs">
+            1
+          </span>
           Info
         </button>
-        <span className="checkout-step-sep" aria-hidden="true" />
+        <span className="h-px w-8 bg-line" aria-hidden="true" />
         <button
           type="button"
-          className={`checkout-step${step === "payment" ? " is-active" : ""}`}
+          className={cn(
+            "inline-flex items-center gap-2 border-0 bg-transparent p-0 font-inherit text-sm disabled:cursor-default",
+            step === "payment" ? "text-ink" : "text-ink-soft"
+          )}
           disabled={step === "info"}
         >
-          <span className="checkout-step-num">2</span>
+          <span className="inline-flex h-6 w-6 items-center justify-center border border-current text-xs">
+            2
+          </span>
           {locale === "nb" ? "Betaling & levering" : "Payment & Delivery"}
         </button>
       </nav>
 
-      <div className="checkout-grid">
-        <div className="checkout-main">
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.2fr_0.8fr] max-[860px]:gap-8">
+        <div>
           {step === "info" ? (
-            <form className="checkout-info" onSubmit={continueToPayment}>
-              <h2>{locale === "nb" ? "Dine opplysninger" : "Your details"}</h2>
-              <label className="checkout-field">
+            <form className="flex max-w-md flex-col gap-4" onSubmit={continueToPayment}>
+              <h2 className="mb-2 text-2xl tracking-tight">
+                {locale === "nb" ? "Dine opplysninger" : "Your details"}
+              </h2>
+              <label className="flex flex-col gap-1.5 text-sm text-ink-soft">
                 <span>{locale === "nb" ? "Navn" : "Name"}</span>
                 <input
                   type="text"
@@ -225,27 +238,31 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
                   required
+                  className={fieldClass}
                 />
               </label>
-              <label className="checkout-field">
-                <span>Email</span>
+              <label className="flex flex-col gap-1.5 text-sm text-ink-soft">
+                <span>{locale === "nb" ? "E-post" : "Email"}</span>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                   required
+                  className={fieldClass}
                 />
               </label>
-              {error ? <p className="checkout-error">{error}</p> : null}
-              <button type="submit" className="btn">
+              {error ? <p className="text-sm text-red-700">{error}</p> : null}
+              <button type="submit" className={`${btnClass} self-start`}>
                 {locale === "nb" ? "Fortsett" : "Continue"}
               </button>
             </form>
           ) : (
-            <div className="checkout-payment">
-              <h2>{locale === "nb" ? "Levering" : "Delivery"}</h2>
-              <div className="delivery-options" role="radiogroup">
+            <div>
+              <h2 className="mb-4 text-2xl tracking-tight">
+                {locale === "nb" ? "Levering" : "Delivery"}
+              </h2>
+              <div className="mb-8 flex flex-col gap-2" role="radiogroup">
                 {options.map((opt) => {
                   const price = money({
                     priceNok: opt.priceNok,
@@ -256,7 +273,10 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                   return (
                     <label
                       key={opt.key}
-                      className={`delivery-option${deliveryKey === opt.key ? " is-active" : ""}`}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-3 border px-4 py-3",
+                        deliveryKey === opt.key ? "border-ink" : "border-line"
+                      )}
                     >
                       <input
                         type="radio"
@@ -264,26 +284,29 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                         value={opt.key}
                         checked={deliveryKey === opt.key}
                         onChange={() => setDeliveryKey(opt.key)}
+                        className="accent-ink"
                       />
-                      <span className="delivery-option-text">
-                        <strong>{deliveryLabel(opt)}</strong>
-                        <em>{free ? (locale === "nb" ? "Gratis" : "Free") : price}</em>
+                      <span className="flex flex-1 items-baseline justify-between gap-4">
+                        <strong className="font-medium">{deliveryLabel(opt)}</strong>
+                        <em className="not-italic text-ink-soft">
+                          {free ? (locale === "nb" ? "Gratis" : "Free") : price}
+                        </em>
                       </span>
                     </label>
                   )
                 })}
               </div>
 
-              <h2 className="checkout-pay-heading">
+              <h2 className="mb-4 text-2xl tracking-tight">
                 {locale === "nb" ? "Betaling" : "Payment"}
               </h2>
 
               {error ? (
-                <div className="checkout-error-block">
-                  <p className="checkout-error">{error}</p>
+                <div className="mb-4 flex flex-col items-start gap-3">
+                  <p className="text-sm text-red-700">{error}</p>
                   <button
                     type="button"
-                    className="btn outline"
+                    className={cn(btnClass, "border-line text-ink-soft hover:border-ink hover:bg-transparent hover:text-ink")}
                     onClick={() => {
                       setError(null)
                       setRetryToken((n) => n + 1)
@@ -294,13 +317,13 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                 </div>
               ) : null}
               {loadingCheckout ? (
-                <p className="cart-note">
+                <p className="mb-4 text-sm text-ink-soft">
                   {locale === "nb" ? "Laster betaling…" : "Loading payment…"}
                 </p>
               ) : null}
 
               {clientSecret ? (
-                <div className="stripe-embed">
+                <div className="min-h-[320px]">
                   <EmbeddedCheckoutProvider
                     key={clientSecret}
                     stripe={stripePromise}
@@ -314,16 +337,16 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
           )}
         </div>
 
-        <aside className="checkout-summary">
-          <h2>{t("checkout.summary")}</h2>
+        <aside className="border border-line p-6">
+          <h2 className="mb-5 text-xl tracking-tight">{t("checkout.summary")}</h2>
 
           {step === "payment" && (name.trim() || email.trim()) ? (
-            <div className="checkout-summary-info">
-              <div className="checkout-summary-info-head">
+            <div className="mb-5 border-b border-line pb-4">
+              <div className="mb-2 flex items-center justify-between gap-3 text-sm text-ink-soft">
                 <span>{locale === "nb" ? "Dine opplysninger" : "Your details"}</span>
                 <button
                   type="button"
-                  className="checkout-edit-info"
+                  className="inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 font-inherit text-sm text-ink"
                   onClick={() => {
                     setStep("info")
                     setClientSecret(null)
@@ -343,15 +366,15 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                   {locale === "nb" ? "Rediger" : "Edit"}
                 </button>
               </div>
-              {name.trim() ? <p>{name.trim()}</p> : null}
-              {email.trim() ? <p>{email.trim()}</p> : null}
+              {name.trim() ? <p className="text-sm">{name.trim()}</p> : null}
+              {email.trim() ? <p className="text-sm text-ink-soft">{email.trim()}</p> : null}
             </div>
           ) : null}
 
-          <ul className="checkout-summary-lines">
+          <ul className="mb-4 flex list-none flex-col gap-4">
             {activeLines.map((line) => (
               <li key={line.id}>
-                <div className="checkout-summary-row">
+                <div className="flex justify-between gap-3 text-sm">
                   <span>
                     {line.title}
                     {line.variant === "print" ? ` · ${line.printSize}` : ""}
@@ -367,7 +390,7 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
                 {step === "info" ? (
                   <button
                     type="button"
-                    className="work-info-btn"
+                    className="mt-1 cursor-pointer border-0 border-b border-ink bg-transparent p-0 pb-px text-sm text-ink hover:opacity-50"
                     onClick={() => removeItem(line.id)}
                   >
                     {t("checkout.remove")}
@@ -377,7 +400,7 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
             ))}
           </ul>
           {selectedDelivery ? (
-            <div className="checkout-summary-row checkout-summary-delivery">
+            <div className="mb-3 flex justify-between gap-3 border-t border-line pt-3 text-sm text-ink-soft">
               <span>{deliveryLabel(selectedDelivery)}</span>
               <span>
                 {deliveryTotal === 0
@@ -391,8 +414,8 @@ export default function CheckoutClient({ deliveryOptions }: CheckoutClientProps)
               </span>
             </div>
           ) : null}
-          <p className="checkout-summary-total">
-            <strong>
+          <p className="mt-4 border-t border-line pt-4 text-right">
+            <strong className="text-lg font-medium">
               {money(
                 currency === "nok"
                   ? { priceNok: grandTotal, priceEur: null }

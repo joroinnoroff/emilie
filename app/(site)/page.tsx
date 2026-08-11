@@ -26,7 +26,17 @@ export default async function Home() {
       <Hero settings={settings} />
       <WorksSection works={featuredWorks} />
       <About content={about} />
-      <Shop items={shopWorks.slice(0, 4)} />
+      <Shop
+        items={shopWorks
+          .filter((w) => {
+            const title = w.title.toLowerCase()
+            return (
+              !title.includes("det er dine tårer vi drikker") &&
+              !title.includes("cannegione")
+            )
+          })
+          .slice(0, 4)}
+      />
       <Commission settings={settings} />
       <Newsletter settings={settings} />
       <Suspense fallback={null}>

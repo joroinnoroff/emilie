@@ -1,10 +1,17 @@
+"use client"
+
+import { useLocale } from "@/lib/LocaleProvider"
+import { Wrap } from "./ui"
+
 export default function Footer() {
+  const { t } = useLocale()
+
   return (
-    <footer>
-      <div className="wrap">
-        <span>© 2026 Emilie. All rights reserved.</span>
+    <footer className="border-t border-line py-7">
+      <Wrap className="flex justify-between text-xs text-ink-soft">
+        <span>{t("footer.rights")}</span>
         <span>Made by Oino</span>
-      </div>
+      </Wrap>
     </footer>
-  );
+  )
 }

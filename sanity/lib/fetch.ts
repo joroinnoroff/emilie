@@ -149,6 +149,7 @@ export async function getAboutContent(): Promise<AboutContent> {
     if (!data) return defaultAbout
     return {
       bio: data.bio?.length ? data.bio : defaultAbout.bio,
+      bioNb: data.bioNb?.length ? data.bioNb : defaultAbout.bioNb,
       education: data.education?.length ? data.education : defaultAbout.education,
       exhibitions: data.exhibitions?.length ? data.exhibitions : defaultAbout.exhibitions,
       awards: data.awards?.length ? data.awards : defaultAbout.awards,

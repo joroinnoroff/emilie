@@ -28,13 +28,11 @@ type LocaleContextValue = {
 const LocaleContext = createContext<LocaleContextValue | null>(null)
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en")
-  const [ready, setReady] = useState(false)
+  const [locale, setLocaleState] = useState<Locale>("nb")
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === "en" || saved === "nb") setLocaleState(saved)
-    setReady(true)
   }, [])
 
   const setLocale = useCallback((next: Locale) => {
@@ -54,9 +52,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   return (
     <LocaleContext.Provider value={value}>
-      <div lang={locale} style={ready ? undefined : undefined}>
-        {children}
-      </div>
+      <div lang={locale === "nb" ? "nb" : "en"}>{children}</div>
     </LocaleContext.Provider>
   )
 }

@@ -1,8 +1,7 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { getWorkBySlug, getWorkSiblings, getWorks } from "@/sanity/lib/fetch"
-import FullscreenImage from "@/components/FullscreenImage"
+import ProjectDetailView from "@/components/ProjectDetailView"
 
 export async function generateStaticParams() {
   const works = await getWorks()
@@ -16,7 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const project = await getWorkBySlug(id)
-  return { title: project ? `${project.title} — Emilie` : "Project — Emilie" }
+  return { title: project ? `${project.title} — Emilie` : "Emilie" }
 }
 
 export default async function ProjectDetail({
@@ -30,52 +29,5 @@ export default async function ProjectDetail({
 
   const { prev, next } = await getWorkSiblings(project.id)
 
-  return (
-    <>
-      <section className="detail-hero">
-        <div className="wrap">
-          <FullscreenImage src={project.image} alt={project.title} />
-          <div className="detail-meta">
-            <div className="detail-eyebrow">
-              {project.series} — {project.year}
-            </div>
-            <h1>{project.title}</h1>
-            <p>{project.description}</p>
-            <div className="detail-specs">
-              <div>
-                <span>Medium</span>
-                <span>{project.medium}</span>
-              </div>
-              <div>
-                <span>Size</span>
-                <span>{project.size}</span>
-              </div>
-              <div>
-                <span>Status</span>
-                <span>{project.status}</span>
-              </div>
-            </div>
-            {project.forSale && (
-              <Link href={`/shop/${project.id}`} className="btn" style={{ marginTop: 24 }}>
-                View in Shop
-              </Link>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <div className="wrap">
-        <div className="detail-nav">
-          <Link href={`/projects/${prev.id}`}>
-            <span className="dir">← Previous</span>
-            {prev.title}
-          </Link>
-          <Link href={`/projects/${next.id}`}>
-            <span className="dir">Next →</span>
-            {next.title}
-          </Link>
-        </div>
-      </div>
-    </>
-  )
+  return <ProjectDetailView project={project} prev={prev} next={next} />
 }

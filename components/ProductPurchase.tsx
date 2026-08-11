@@ -5,12 +5,21 @@ import { useSearchParams } from "next/navigation"
 import type { Project } from "@/lib/projects"
 import { cartLineId, useCart } from "./CartProvider"
 import { useLocale } from "@/lib/LocaleProvider"
+import { btnClass, cn } from "./ui"
 
 type ProductPurchaseProps = {
   product: Project
+  /** Desktop: scroll Add to cart into view when choosing version/size */
+  onSelectOption?: () => void
 }
 
-export default function ProductPurchase({ product }: ProductPurchaseProps) {
+const chipClass =
+  "inline-flex cursor-pointer flex-col items-start gap-0.5 border border-line bg-white px-3.5 py-2.5 font-inherit text-[0.9375rem] text-ink"
+
+export default function ProductPurchase({
+  product,
+  onSelectOption,
+}: ProductPurchaseProps) {
   const { addItem, openCart, getQty } = useCart()
   const { t, money, locale } = useLocale()
   const searchParams = useSearchParams()
@@ -58,46 +67,54 @@ export default function ProductPurchase({ product }: ProductPurchaseProps) {
   const inCart = getQty(lineId) > 0
   const uniqueOriginal = version === "original" && product.stock <= 1
   const sold =
-    version === "original" ? !originalAvailable : !selectedPrint || selectedPrint.stock < 1
+    version === "original"
+      ? !originalAvailable
+      : !selectedPrint || selectedPrint.stock < 1
 
   if (!originalAvailable && !printAvailable) {
     return (
-      <button type="button" className="btn disabled" disabled>
+      <button type="button" className={cn(btnClass, "opacity-45")} disabled>
         {t("shop.sold")}
       </button>
     )
   }
 
   return (
-    <div className="product-purchase">
+    <div className="flex flex-col items-start gap-3.5">
       {(originalAvailable || printAvailable) && (
-        <div className="purchase-field">
+        <div className="flex w-full max-w-[420px] flex-col gap-1.5 text-sm text-ink-soft">
           <span>{t("shop.selectVersion")}</span>
-          <div className="print-option-row" role="group" aria-label={t("shop.selectVersion")}>
+          <div
+            className="flex flex-wrap gap-2"
+            role="group"
+            aria-label={t("shop.selectVersion")}
+          >
             {originalAvailable ? (
               <button
                 type="button"
-                className={`print-option-chip${version === "original" ? " is-active" : ""}`}
+                className={cn(chipClass, version === "original" && "border-ink")}
                 onClick={() => {
                   setVersion("original")
                   setMessage(null)
+                  onSelectOption?.()
                 }}
               >
                 <span>{t("shop.original")}</span>
-                <span className="print-option-price">1 / 1</span>
+                <span className="text-[0.8125rem] text-ink-soft">1 / 1</span>
               </button>
             ) : null}
             {printAvailable ? (
               <button
                 type="button"
-                className={`print-option-chip${version === "print" ? " is-active" : ""}`}
+                className={cn(chipClass, version === "print" && "border-ink")}
                 onClick={() => {
                   setVersion("print")
                   setMessage(null)
+                  onSelectOption?.()
                 }}
               >
                 <span>{t("shop.print")}</span>
-                <span className="print-option-price">
+                <span className="text-[0.8125rem] text-ink-soft">
                   {locale === "nb"
                     ? `${availablePrints.reduce((n, p) => n + p.stock, 0)} tilgjengelig`
                     : `${availablePrints.reduce((n, p) => n + p.stock, 0)} available`}
@@ -109,26 +126,29 @@ export default function ProductPurchase({ product }: ProductPurchaseProps) {
       )}
 
       {version === "print" && availablePrints.length > 0 ? (
-        <div className="purchase-field">
+        <div className="flex w-full max-w-[420px] flex-col gap-1.5 text-sm text-ink-soft">
           <span>{t("shop.selectSize")}</span>
-          <div className="print-option-row" role="listbox" aria-label={t("shop.selectSize")}>
+          <div
+            className="flex flex-wrap gap-2"
+            role="listbox"
+            aria-label={t("shop.selectSize")}
+          >
             {availablePrints.map((p) => (
               <button
                 key={p.size}
                 type="button"
                 role="option"
                 aria-selected={printSize === p.size}
-                className={`print-option-chip${printSize === p.size ? " is-active" : ""}`}
+                className={cn(chipClass, printSize === p.size && "border-ink")}
                 onClick={() => {
                   setPrintSize(p.size)
                   setMessage(null)
+                  onSelectOption?.()
                 }}
               >
                 <span>{p.size}</span>
-                <span className="print-option-price text-center mx-auto">
+                <span className="mx-auto text-center text-[0.8125rem] text-ink-soft">
                   {money({ priceNok: p.priceNok, priceEur: p.priceEur })}
-                  {" · "}
-                  
                 </span>
               </button>
             ))}
@@ -136,20 +156,20 @@ export default function ProductPurchase({ product }: ProductPurchaseProps) {
         </div>
       ) : null}
 
-      <div className="cart-price">{money(prices)}</div>
+      <div className="mb-1 text-[2rem] text-ink">{money(prices)}</div>
 
       {sold ? (
-        <button type="button" className="btn disabled" disabled>
+        <button type="button" className={cn(btnClass, "opacity-45")} disabled>
           {t("shop.sold")}
         </button>
       ) : uniqueOriginal && inCart ? (
-        <button type="button" className="btn" onClick={() => openCart()}>
+        <button type="button" className={btnClass} onClick={() => openCart()}>
           {t("shop.inCart")}
         </button>
       ) : (
         <button
           type="button"
-          className="btn"
+          className={btnClass}
           onClick={() => {
             const result = addItem({
               product,
@@ -170,7 +190,9 @@ export default function ProductPurchase({ product }: ProductPurchaseProps) {
         </button>
       )}
 
-      {message ? <p className="cart-note">{message}</p> : null}
+      {message ? (
+        <p className="mt-3 text-sm text-ink-soft">{message}</p>
+      ) : null}
     </div>
   )
 }
