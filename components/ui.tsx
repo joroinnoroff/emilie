@@ -20,7 +20,7 @@ export function Wrap({ children, className, as: Tag = "div" }: WrapProps) {
 
 /** Primary bordered button */
 export const btnClass =
-  "inline-flex items-center gap-2 border border-ink bg-transparent px-6 py-3.5 font-inherit text-base text-ink transition-colors hover:bg-ink hover:text-white disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent disabled:hover:text-ink"
+  "inline-flex cursor-pointer items-center gap-2 border border-ink bg-transparent px-6 py-3.5 font-inherit text-base text-ink transition-colors hover:bg-ink hover:text-white disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent disabled:hover:text-ink"
 
 /** Underline text link button (section CTAs) */
 export const textLinkClass =

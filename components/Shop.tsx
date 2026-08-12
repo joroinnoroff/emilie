@@ -3,6 +3,7 @@
 import Link from "next/link"
 import type { Project } from "@/lib/projects"
 import { useLocale } from "@/lib/LocaleProvider"
+import NaturalAspectImage from "./NaturalAspectImage"
 import { Wrap, textLinkClass } from "./ui"
 
 type ShopProps = {
@@ -27,10 +28,10 @@ export default function Shop({ items }: ShopProps) {
   const { t } = useLocale()
 
   return (
-    <section className="border-t border-line pt-[140px] pb-[90px] md:pt-[160px]" id="shop">
+    <section className="border-t border-line pt-[220px] pb-[90px]" id="shop">
       <Wrap>
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
-          <h2 className="min-w-0 max-w-full flex-1 basis-[12rem] text-[clamp(1.75rem,6vw,3.5rem)] tracking-tight">
+        <div className="mb-12 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+          <h2 className="min-w-0 max-w-full flex-1 basis-[12rem] text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight">
             {t("shop.heading")}
           </h2>
 
@@ -38,27 +39,34 @@ export default function Shop({ items }: ShopProps) {
             {t("shop.all")}
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4 max-[860px]:grid-cols-2">
+        <div className="grid grid-cols-2 gap-x-12 gap-y-24 md:grid-cols-4 md:gap-x-16 md:gap-y-28">
           {items.map((p) => {
             const label = offerLabel(p, t)
             return (
-              <div key={p.id}>
-                <div className="aspect-[4/5] overflow-hidden bg-[#eee]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={p.image}
-                    alt={p.title}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="pt-4">
-                  <div className="text-xl tracking-tight">{p.title}</div>
+              <div key={p.id} className="flex min-w-0 flex-col gap-4">
+                <NaturalAspectImage src={p.image} alt={p.title} />
+                <div className="flex flex-col gap-2 pt-1">
+                  <div className="text-lg tracking-tight md:text-xl">{p.title}</div>
                   {label ? (
-                    <div className="mt-1.5 text-sm text-ink-soft">{label}</div>
+                    (() => {
+                      const parts = label.split("·").map((p) => p.trim()).filter(Boolean)
+                      if (parts.length === 2) {
+                        return (
+                          <div className="flex items-center gap-2 text-sm text-ink-soft">
+                            <span>{parts[0]}</span>
+                            <span aria-hidden>·</span>
+                            <span>{parts[1]}</span>
+                          </div>
+                        )
+                      }
+                      return (
+                        <div className="text-sm text-ink-soft">{label}</div>
+                      )
+                    })()
                   ) : null}
                   <Link
                     href={`/shop/${p.id}`}
-                    className="mt-3.5 inline-flex border-0 border-b border-ink bg-transparent p-0 pb-0.5 text-ink transition-opacity hover:opacity-50"
+                    className="mt-1 inline-flex border-0 border-b border-ink bg-transparent p-0 pb-0.5 text-ink transition-opacity hover:opacity-50"
                   >
                     {t("shop.view")}
                   </Link>

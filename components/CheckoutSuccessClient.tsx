@@ -82,7 +82,7 @@ export default function CheckoutSuccessClient() {
   return (
     <section className="pt-[150px] pb-20">
       <Wrap className="max-w-[560px]">
-        <h1 className="mb-4 text-[clamp(2.25rem,5vw,4rem)] tracking-tight">
+        <h1 className="mb-4 text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight">
           {locale === "nb" ? "Takk for bestillingen" : "Thank you for your order"}
         </h1>
         <p className="mb-8 text-[1.0625rem] text-ink-soft">

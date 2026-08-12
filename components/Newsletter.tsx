@@ -21,7 +21,7 @@ export default function Newsletter({ settings }: NewsletterProps) {
     <section className="border-t border-line py-20" id="newsletter">
       <Wrap className="grid grid-cols-1 items-end gap-12 md:grid-cols-2 max-[860px]:gap-10">
         <div>
-          <h2 className="mb-3 text-[clamp(2rem,3.5vw,2.75rem)] tracking-tight">
+          <h2 className="mb-3 text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight">
             {locale === "nb" ? "Nyhetsbrev" : "Newsletter"}
           </h2>
           <p className="max-w-[360px] text-[1.0625rem] text-ink-soft">{intro}</p>

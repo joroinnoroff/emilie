@@ -8,7 +8,7 @@ import { useLocale } from "@/lib/LocaleProvider"
 import type { MessageKey } from "@/lib/i18n"
 import { Wrap, cn } from "./ui"
 
-const LOGO = "Emilie"
+const LOGO = "Emilie W. Lien"
 const HERO_COOKIE = "emilie-needs-hero-top"
 
 function setCookie(name: string, value: string, maxAgeSec = 60 * 60) {
@@ -85,7 +85,6 @@ export default function Header({
   const links = useMemo(
     () =>
       [
-        { href: "/projects", labelKey: "nav.works" as MessageKey, hero: false },
         { href: "/#about", labelKey: "nav.about" as MessageKey, hero: true },
         { href: "/shop", labelKey: "nav.shop" as MessageKey, hero: true },
         { href: "/#contact", labelKey: "nav.contact" as MessageKey, hero: true },
@@ -176,9 +175,7 @@ export default function Header({
 
   const showLogo = !hasHero || pastVideo
   const onHeroLanding = hasHero && !pastVideo
-  const onShop =
-    pathName.startsWith("/shop") || pathName.startsWith("/checkout")
-  const showCart = onShop && count > 0
+  const showCart = pathName.startsWith("/shop") && count > 0
   const langOnRight = !onHeroLanding
   const scrolled = pastVideo || !hasHero
 
@@ -229,7 +226,7 @@ export default function Header({
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-[200] py-[22px] transition-colors duration-500",
+        "fixed inset-x-0 top-0 z-[200] py-[22px] transition-colors duration-300",
         aboutTheme
           ? "bg-about text-white"
           : scrolled || open
@@ -247,7 +244,7 @@ export default function Header({
               href="/"
               key={logoKey}
               className={cn(
-                "inline-flex min-w-16 text-xl font-medium transition-colors duration-500",
+                "inline-flex min-w-16 whitespace-nowrap text-xl font-medium transition-colors duration-500",
                 aboutTheme ? "text-white" : "text-ink"
               )}
               onClick={() => {
@@ -260,9 +257,9 @@ export default function Header({
                 <span
                   key={`${char}-${i}`}
                   className="logo-char"
-                  style={{ animationDelay: `${80 + i * 55}ms` }}
+                  style={{ animationDelay: `${80 + i * 45}ms` }}
                 >
-                  {char}
+                  {char === " " ? "\u00A0" : char}
                 </span>
               ))}
             </Link>
@@ -357,35 +354,49 @@ export default function Header({
             as="nav"
             className="flex items-start justify-between gap-8 pt-2 pb-7"
           >
-            <div className="flex shrink-0 items-center justify-start gap-4 pt-1">
-              <a
-                href={`mailto:${email}`}
-                aria-label="Email"
+            <div className="flex shrink-0 flex-col items-start gap-3 pt-1">
+              <div className="flex items-center justify-start gap-4">
+                <a
+                  href={`mailto:${email}`}
+                  aria-label="Email"
+                  className={cn(
+                    "inline-flex items-center justify-center transition-colors duration-500",
+                    aboutTheme
+                      ? "text-white/75 hover:text-white"
+                      : "text-ink-soft hover:text-ink"
+                  )}
+                  onClick={() => setOpen(false)}
+                >
+                  <MailIcon />
+                </a>
+                <a
+                  href={instagram}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Instagram"
+                  className={cn(
+                    "inline-flex items-center justify-center transition-colors duration-500",
+                    aboutTheme
+                      ? "text-white/75 hover:text-white"
+                      : "text-ink-soft hover:text-ink"
+                  )}
+                  onClick={() => setOpen(false)}
+                >
+                  <InstagramIcon />
+                </a>
+              </div>
+              <Link
+                href="/privacy"
                 className={cn(
-                  "inline-flex items-center justify-center transition-colors duration-500",
+                  "text-sm transition-colors duration-500",
                   aboutTheme
-                    ? "text-white/75 hover:text-white"
+                    ? "text-white/70 hover:text-white"
                     : "text-ink-soft hover:text-ink"
                 )}
                 onClick={() => setOpen(false)}
               >
-                <MailIcon />
-              </a>
-              <a
-                href={instagram}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Instagram"
-                className={cn(
-                  "inline-flex items-center justify-center transition-colors duration-500",
-                  aboutTheme
-                    ? "text-white/75 hover:text-white"
-                    : "text-ink-soft hover:text-ink"
-                )}
-                onClick={() => setOpen(false)}
-              >
-                <InstagramIcon />
-              </a>
+                {t("legal.title")}
+              </Link>
             </div>
             <ul className="ml-auto flex list-none flex-col items-end justify-end gap-4">
               {links.map((link) => (

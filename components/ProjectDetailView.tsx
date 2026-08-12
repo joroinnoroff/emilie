@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import type { Project } from "@/lib/projects"
+import DescriptionCollapse from "@/components/DescriptionCollapse"
 import FullscreenImage from "@/components/FullscreenImage"
 import { useLocale } from "@/lib/LocaleProvider"
 import { Wrap, btnClass } from "./ui"
@@ -47,12 +48,10 @@ export default function ProjectDetailView({
             <div className="mb-2 text-sm text-ink-soft">
               {project.series} — {project.year}
             </div>
-            <h1 className="mb-4 text-[clamp(2rem,4vw,3rem)] tracking-tight">
+            <h1 className="mb-4 text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight">
               {project.title}
             </h1>
-            <p className="mb-8 max-w-[440px] text-[1.0625rem] text-ink-soft">
-              {project.description}
-            </p>
+            <DescriptionCollapse text={project.description} />
             <div className="mb-5 flex flex-col gap-3 border-t border-line pt-5 text-sm">
               <div className="flex max-w-[340px] justify-between gap-4">
                 <span className="text-ink-soft">{t("shop.medium")}</span>

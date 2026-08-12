@@ -28,8 +28,8 @@ type WorksSectionProps = {
 export default function WorksSection({ works }: WorksSectionProps) {
   const { t } = useLocale()
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: "center",
-    containScroll: "trimSnaps",
+    align: (viewSize, snapSize) => (viewSize - snapSize) * 0.32,
+    containScroll: false,
     dragFree: false,
     skipSnaps: false,
     duration: 25,
@@ -69,10 +69,10 @@ export default function WorksSection({ works }: WorksSectionProps) {
     <section className="relative mt-10 overflow-hidden pt-[120px] pb-20 md:pt-[140px]" id="works">
       <Wrap>
         <div className="mb-9 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
-          <h2 className="min-w-0 max-w-full flex-1 basis-[12rem] text-[clamp(1.75rem,6vw,3.5rem)] tracking-tight">
+          <h2 className="min-w-0 max-w-full flex-1 basis-[12rem] text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight">
             {t("works.heading")}
           </h2>
-          <Link href="/projects" className={`${textLinkClass} shrink-0 whitespace-nowrap`}>
+          <Link href="/shop" className={`${textLinkClass} shrink-0 whitespace-nowrap`}>
             {t("works.all")}
           </Link>
         </div>
@@ -83,60 +83,73 @@ export default function WorksSection({ works }: WorksSectionProps) {
           className="overflow-hidden px-6 md:px-12"
           ref={emblaRef}
         >
-          <div className="flex touch-pan-y gap-7">
+          <div className="flex touch-pan-y gap-5 md:gap-7">
             {works.map((p) => (
               <article
                 key={p.id}
-                className="flex min-w-0 shrink-0 grow-0 basis-[78%] flex-col max-[600px]:basis-[78%] min-[600px]:basis-[42%] min-[900px]:basis-[30%] min-[1200px]:basis-[26%]"
+                className="flex min-w-0 shrink-0 grow-0 basis-[85%] flex-col max-[600px]:basis-[85%] min-[600px]:basis-[55%] min-[900px]:basis-[42%] min-[1200px]:basis-[36%]"
               >
-                <div className="relative mb-4 aspect-[4/5] overflow-hidden bg-[#eee]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={p.image}
-                    alt={p.title}
-                    className="h-full w-full object-cover select-none"
-                    draggable={false}
-                  />
-                </div>
-                <div className="flex flex-col items-start gap-1.5">
-                  <div className="flex w-full items-baseline justify-between gap-3">
-                    <h3 className="min-w-0 truncate text-lg font-medium tracking-tight">
-                      {p.title}
-                    </h3>
-                    <span className="shrink-0 text-sm text-ink-soft">{p.size}</span>
-                  </div>
+                <div className="mx-auto flex w-fit max-w-full flex-col">
                   <Link
-                    href={`/projects/${p.id}`}
-                    className="mt-1 border-b border-ink pb-px text-sm text-ink transition-opacity hover:opacity-50"
+                    href={`/shop/${p.id}`}
+                    className="relative mb-4 block overflow-hidden bg-[#eee]"
                   >
-                    {t("works.info")}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={p.image}
+                      alt={p.title}
+                      className="block h-auto max-h-[min(68vh,480px)] w-auto max-w-full select-none md:max-h-[min(62vh,520px)]"
+                      draggable={false}
+                    />
                   </Link>
+                  <div className="flex w-full flex-col items-start gap-1.5">
+                    <div className="flex w-full items-baseline justify-between gap-3">
+                      <h3 className="min-w-0 truncate text-lg font-medium tracking-tight">
+                        {p.title}
+                      </h3>
+                      <span className="shrink-0 text-sm text-ink-soft">{p.size}</span>
+                    </div>
+                    <Link
+                      href={`/shop/${p.id}`}
+                      className="mt-1 border-b border-ink pb-px text-sm text-ink transition-opacity hover:opacity-50"
+                    >
+                      {t("works.info")}
+                    </Link>
+                  </div>
                 </div>
               </article>
             ))}
           </div>
         </div>
 
-        {canPrev ? (
-          <button
-            type="button"
-            className="absolute top-[40%] left-4 z-[2] flex h-[52px] w-[52px] -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-ink transition-opacity hover:opacity-45 max-[860px]:left-2 max-[600px]:left-2 max-[600px]:h-11 max-[600px]:w-11 md:left-6"
-            aria-label="Previous works"
-            onClick={() => emblaApi?.scrollPrev()}
-          >
-            <Chevron dir="prev" />
-          </button>
-        ) : null}
-        {canNext ? (
-          <button
-            type="button"
-            className="absolute top-[40%] right-4 z-[2] flex h-[52px] w-[52px] -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-ink transition-opacity hover:opacity-45 max-[860px]:right-2 max-[600px]:right-2 max-[600px]:h-11 max-[600px]:w-11 md:right-6"
-            aria-label="Next works"
-            onClick={() => emblaApi?.scrollNext()}
-          >
-            <Chevron dir="next" />
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className={`absolute top-[40%] left-4 z-[2] flex h-[52px] w-[52px] -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-[#3a3a3a] transition-[opacity,transform] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] max-[860px]:left-2 max-[600px]:left-2 max-[600px]:h-11 max-[600px]:w-11 md:left-6 ${
+            canPrev
+              ? "opacity-100 hover:opacity-55"
+              : "pointer-events-none opacity-0"
+          }`}
+          aria-label="Previous works"
+          aria-hidden={!canPrev}
+          tabIndex={canPrev ? 0 : -1}
+          onClick={() => emblaApi?.scrollPrev()}
+        >
+          <Chevron dir="prev" />
+        </button>
+        <button
+          type="button"
+          className={`absolute top-[40%] right-4 z-[2] flex h-[52px] w-[52px] -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-[#3a3a3a] transition-[opacity,transform] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] max-[860px]:right-2 max-[600px]:right-2 max-[600px]:h-11 max-[600px]:w-11 md:right-6 ${
+            canNext
+              ? "opacity-100 hover:opacity-55"
+              : "pointer-events-none opacity-0"
+          }`}
+          aria-label="Next works"
+          aria-hidden={!canNext}
+          tabIndex={canNext ? 0 : -1}
+          onClick={() => emblaApi?.scrollNext()}
+        >
+          <Chevron dir="next" />
+        </button>
       </div>
     </section>
   )

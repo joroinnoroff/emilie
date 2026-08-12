@@ -39,6 +39,16 @@ export const workBySlugQuery = groq`
   }
 `
 
+/** Ordered list from Site Settings — preserves drag order */
+export const featuredWorksOrderedQuery = groq`
+  *[_type == "siteSettings"][0]{
+    "works": featuredWorks[]->{
+      ${workFields}
+    }
+  }.works
+`
+
+/** Fallback when Site Settings list is empty */
 export const featuredWorksQuery = groq`
   *[_type == "work" && featured == true] | order(year desc) {
     ${workFields}
@@ -76,6 +86,7 @@ export const siteSettingsQuery = groq`
     exhibitionBanner,
     exhibitionBannerNb,
     "heroVideoUrl": heroVideo.asset->url,
+    heroVideoAudio,
     email,
     instagram,
     contactIntro,

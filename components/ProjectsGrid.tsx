@@ -49,7 +49,7 @@ export default function ProjectsGrid({ projects, series }: ProjectsGridProps) {
           ))}
         </nav>
 
-        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 max-[860px]:grid-cols-2 max-[600px]:grid-cols-1">
+        <div className="mx-auto flex w-full max-w-[300px] flex-col gap-24 md:max-w-[360px] md:gap-52">
           {items.map((p) => (
             <WorkCard
               key={p.id}

@@ -1,10 +1,11 @@
 "use client"
 
-import Link from "next/link"
+import { Suspense } from "react"
 import type { SiteSettings } from "@/lib/sanity-content"
 import { localized } from "@/lib/sanity-content"
 import { useLocale } from "@/lib/LocaleProvider"
-import { Wrap, textLinkClass } from "./ui"
+import ContactForm from "./ContactForm"
+import { Wrap } from "./ui"
 
 type CommissionProps = {
   settings: SiteSettings
@@ -15,9 +16,6 @@ export default function Commission({ settings }: CommissionProps) {
   const heading =
     localized(locale, settings.commissionHeading, settings.commissionHeadingNb) ||
     (locale === "nb" ? "Ønsker du et verk?" : "Looking for a Custom Artwork?")
-  const cta =
-    localized(locale, settings.commissionCta, settings.commissionCtaNb) ||
-    (locale === "nb" ? "Kontakt" : "Contact")
   const body =
     locale === "nb"
       ? settings.commissionBodyNb?.length
@@ -31,20 +29,24 @@ export default function Commission({ settings }: CommissionProps) {
 
   return (
     <section className="border-t border-line py-[100px]" id="commission">
-      <Wrap>
-        <h2 className="mb-7 max-w-[18ch] text-[clamp(2.25rem,4.2vw,3.5rem)] tracking-tight">
-          {heading}
-        </h2>
-        <div className="mb-8 flex max-w-[640px] flex-col gap-[18px]">
-          {body.map((paragraph, i) => (
-            <p key={i} className="text-[1.0625rem] text-ink-soft">
-              {paragraph}
-            </p>
-          ))}
+      <Wrap className="grid w-full grid-cols-1 items-start gap-16 min-[861px]:grid-cols-2 max-[860px]:gap-10">
+        <div>
+          <h2 className="mb-7 max-w-[18ch] text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight">
+            {heading}
+          </h2>
+          <div className="flex max-w-[640px] flex-col gap-[18px]">
+            {body.map((paragraph, i) => (
+              <p key={i} className="text-[1.0625rem] text-ink-soft">
+                {paragraph}
+              </p>
+            ))}
+          </div>
         </div>
-        <Link href="/?reason=commission#contact" className={textLinkClass}>
-          {cta}
-        </Link>
+        <div className="mt-8 min-[861px]:sticky min-[861px]:top-[110px] min-[861px]:mt-10">
+          <Suspense fallback={null}>
+            <ContactForm />
+          </Suspense>
+        </div>
       </Wrap>
     </section>
   )

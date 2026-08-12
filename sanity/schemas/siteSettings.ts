@@ -74,6 +74,14 @@ export const siteSettings = defineType({
       options: { accept: "video/*" },
     }),
     defineField({
+      name: "heroVideoAudio",
+      title: "Hero video audio",
+      type: "boolean",
+      initialValue: false,
+      description:
+        "If on, visitors can unmute in fullscreen. Autoplay on the page still starts muted.",
+    }),
+    defineField({
       name: "email",
       title: "Contact email",
       type: "string",
@@ -147,6 +155,21 @@ export const siteSettings = defineType({
       title: "Commission CTA (Norwegian)",
       type: "string",
       initialValue: "Kontakt",
+    }),
+    defineField({
+      name: "featuredWorks",
+      title: "Utvalgte verk (homepage)",
+      type: "array",
+      description:
+        "Works shown in the homepage carousel. Drag to set order. Leave empty to fall back to works marked “Featured on homepage”.",
+      of: [
+        {
+          type: "reference",
+          to: [{ type: "work" }],
+          options: { disableNew: true },
+        },
+      ],
+      validation: (Rule) => Rule.unique(),
     }),
     defineField({
       name: "deliveryOptions",

@@ -1,6 +1,7 @@
 import { client, hasSanityConfig, urlFor } from "@/sanity/lib/client"
 import {
   aboutQuery,
+  featuredWorksOrderedQuery,
   featuredWorksQuery,
   seriesQuery,
   shopWorksQuery,
@@ -151,7 +152,7 @@ export async function getAboutContent(): Promise<AboutContent> {
       bio: data.bio?.length ? data.bio : defaultAbout.bio,
       bioNb: data.bioNb?.length ? data.bioNb : defaultAbout.bioNb,
       education: data.education?.length ? data.education : defaultAbout.education,
-      exhibitions: data.exhibitions?.length ? data.exhibitions : defaultAbout.exhibitions,
+      exhibitions: data.exhibitions?.length ? data.exhibitions : [],
       awards: data.awards?.length ? data.awards : defaultAbout.awards,
     }
   } catch {
@@ -183,12 +184,19 @@ export async function getFeaturedWorks(): Promise<Project[]> {
   }
 
   try {
-    const featured = normalizeWorks(
-      await client.fetch<SanityWork[]>(
-        featuredWorksQuery,
+    const fetchOpts = { next: { revalidate: 30, tags: ["works", "siteSettings"] } }
+
+    const ordered = normalizeWorks(
+      await client.fetch<(SanityWork | null)[]>(
+        featuredWorksOrderedQuery,
         {},
-        { next: { revalidate: 30, tags: ["works"] } }
+        fetchOpts
       )
+    )
+    if (ordered.length) return ordered
+
+    const featured = normalizeWorks(
+      await client.fetch<SanityWork[]>(featuredWorksQuery, {}, fetchOpts)
     )
     if (featured.length) return featured
 

@@ -54,7 +54,16 @@ export default function CartDrawer() {
         </div>
 
         {lines.length === 0 ? (
-          <p className="flex-1 text-ink-soft">{t("checkout.empty")}</p>
+          <div className="flex flex-1 flex-col gap-4">
+            <p className="text-ink-soft">{t("checkout.empty")}</p>
+            <button
+              type="button"
+              className="cursor-pointer self-start border-0 bg-transparent p-0 font-inherit text-sm text-ink underline-offset-4 hover:underline"
+              onClick={closeCart}
+            >
+              {t("inquiry.continueBrowse")}
+            </button>
+          </div>
         ) : (
           <ul className="flex flex-1 list-none flex-col gap-5 overflow-auto">
             {lines.map((line) => {
@@ -82,7 +91,6 @@ export default function CartDrawer() {
                     </div>
                     {unique ? (
                       <div className="mt-2.5 flex items-center gap-2.5 text-sm">
-                        <span className="text-ink-soft">{t("shop.unique")}</span>
                         <button
                           type="button"
                           className="cursor-pointer border-0 bg-transparent p-0 font-inherit text-ink"
@@ -143,7 +151,7 @@ export default function CartDrawer() {
             href="/checkout"
             className={cn(
               btnClass,
-              "w-full justify-center",
+              "mb-3 w-full justify-center",
               lines.length === 0 && "pointer-events-none opacity-45"
             )}
             onClick={(e) => {
@@ -151,8 +159,15 @@ export default function CartDrawer() {
               else closeCart()
             }}
           >
-            {t("checkout.title")}
+            {t("inquiry.submit")}
           </Link>
+          <button
+            type="button"
+            className="w-full cursor-pointer border-0 bg-transparent p-0 text-center font-inherit text-sm text-ink-soft underline-offset-4 transition-opacity hover:opacity-60 hover:underline"
+            onClick={closeCart}
+          >
+            {t("inquiry.continueBrowse")}
+          </button>
         </div>
       </aside>
     </>

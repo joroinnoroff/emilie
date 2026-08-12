@@ -19,6 +19,8 @@ export type SiteSettings = {
   exhibitionBanner?: string
   exhibitionBannerNb?: string
   heroVideoUrl?: string
+  /** Unmute control in fullscreen when true. Page autoplay stays muted. */
+  heroVideoAudio?: boolean
   email?: string
   instagram?: string
   contactIntro?: string
@@ -61,6 +63,7 @@ export const defaultSiteSettings: SiteSettings = {
   exhibitionBanner: "Exhibition at Galleri Tjøme 25. July — 08. August",
   exhibitionBannerNb: "Utstilling på Galleri Tjøme 25. juli — 08. august",
   heroVideoUrl: "/hero.mp4",
+  heroVideoAudio: false,
   email: "post@emilie.no",
   instagram: "#",
   contactIntro:
@@ -130,13 +133,7 @@ export const defaultAbout: AboutContent = {
       detail: "Visuelle kunstfag, Oslo",
     },
   ],
-  exhibitions: [
-    {
-      year: "2025",
-      title: "Sommerutstilling",
-      detail: "Galleri Tjøme, 25. juli — 08. august",
-    },
-  ],
+  exhibitions: [],
   awards: [],
 }
 

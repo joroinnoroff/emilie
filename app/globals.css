@@ -95,3 +95,59 @@
 .menu-toggle-line-bottom.open {
   transform: translateY(-6px) rotate(-45deg);
 }
+
+@keyframes shopProductEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shop-product-enter {
+  animation: shopProductEnter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 12-bit pastel volume loader */
+@keyframes shopLoaderDot {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(0.65);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  70% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+}
+
+.shop-loader-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: shopLoaderDot 1.05s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+@keyframes fullscreenClickCue {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.fullscreen-click-cue {
+  display: block;
+  transform-origin: center;
+  animation: fullscreenClickCue 1.8s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}

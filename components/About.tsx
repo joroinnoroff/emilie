@@ -25,7 +25,7 @@ function CvGroup({
     <div className="mb-5 last:mb-0">
       <h3
         className={cn(
-          "mb-3 border-t pt-2.5 text-sm transition-colors duration-500",
+          "mb-3 border-t pt-2.5 text-[0.8125rem] transition-colors duration-500",
           active
             ? "border-white/35 text-white/75"
             : "border-line text-ink-soft"
@@ -35,12 +35,12 @@ function CvGroup({
       </h3>
       {items.map((item, i) => (
         <div
-          className="mb-2.5 flex gap-[18px] text-base"
+          className="mb-2.5 flex gap-4 text-sm"
           key={`${item.year}-${item.title}-${i}`}
         >
           <span
             className={cn(
-              "w-[90px] shrink-0 transition-colors duration-500",
+              "w-[80px] shrink-0 transition-colors duration-500",
               active ? "text-white" : "text-ink"
             )}
           >
@@ -97,7 +97,9 @@ export default function About({ content }: AboutProps) {
     const update = () => {
       raf = 0
       const { top, bottom } = el.getBoundingClientRect()
-      const active = top <= 0 && bottom > 0
+      // Flip a bit before the section edge hits the header for a tighter sync
+      const early = 88
+      const active = top <= early && bottom > early
       setInView(active)
       document.documentElement.dataset.aboutTheme = active ? "1" : ""
 
@@ -129,20 +131,25 @@ export default function About({ content }: AboutProps) {
   return (
     <section
       ref={sectionRef}
-      id="about"
       className={cn(
-        "min-h-[140vh] border-t transition-colors duration-500",
+        "relative min-h-[140vh] border-t transition-colors duration-300",
         inView
           ? "border-transparent bg-about text-white"
           : "border-line bg-white text-ink"
       )}
     >
-      <div className="mx-auto grid min-h-[140vh] w-full max-w-[1480px] grid-cols-1 gap-10 px-6 pt-[100px] pb-[120px] md:grid-cols-[0.95fr_1.15fr] md:gap-14 md:px-12 lg:gap-20">
+      {/* Anchor sits further into the tall section so nav /#about scrolls deeper */}
+      <div
+        id="about"
+        aria-hidden
+        className="pointer-events-none absolute top-[min(28vh,270px)] left-0 h-px w-px scroll-mt-28 min-[861px]:top-[min(37vh,360px)] lg:top-[min(34vh,340px)]"
+      />
+      <div className="mx-auto grid min-h-[140vh] w-full max-w-[1480px] grid-cols-1 gap-10 px-6 pt-[100px] pb-[56px] md:grid-cols-[0.78fr_1.22fr] md:gap-14 md:px-12 md:pb-[72px] lg:gap-16">
         <div className="relative order-2 md:order-1">
-          <div className="md:sticky md:top-[88px] md:flex md:h-[calc(100vh-88px)] md:items-center">
+          <div className="md:sticky md:top-[88px] md:flex md:h-[calc(100vh-88px)] md:items-center md:justify-center">
             <div
               ref={mediaRef}
-              className="relative aspect-[4/5] w-full overflow-hidden md:max-h-[78vh]"
+              className="relative aspect-[4/5] w-full max-w-[420px] overflow-hidden md:max-h-[68vh] md:max-w-[380px] lg:max-w-[420px]"
             >
               <Image
                 ref={imageRef}
@@ -153,7 +160,7 @@ export default function About({ content }: AboutProps) {
                     : "Emilie in front of one of her paintings"
                 }
                 fill
-                sizes="(max-width: 768px) 100vw, 44vw"
+                sizes="(max-width: 768px) 100vw, 380px"
                 className="object-cover object-[50%_18%] will-change-transform"
                 style={{ transform: "translate3d(0, 0, 0) scale(1.14)" }}
                 priority={false}
@@ -165,7 +172,7 @@ export default function About({ content }: AboutProps) {
         <div className="order-1 flex flex-col justify-center md:order-2 md:py-8">
           <h2
             className={cn(
-              "mb-7 text-[clamp(2.75rem,6vw,4.5rem)] leading-[1.05] tracking-tight transition-colors duration-500",
+              "mb-6 text-[clamp(1.65rem,2.8vw,2.4rem)] leading-[1.05] tracking-tight transition-colors duration-500",
               inView ? "text-white" : "text-ink"
             )}
           >
@@ -175,7 +182,7 @@ export default function About({ content }: AboutProps) {
             <p
               key={i}
               className={cn(
-                "mb-[18px] max-w-[540px] text-[1.125rem] leading-relaxed transition-colors duration-500",
+                "mb-4 max-w-[500px] text-[1.025rem] leading-relaxed transition-colors duration-500",
                 inView ? "text-white/85" : "text-ink-soft"
               )}
             >
@@ -183,7 +190,7 @@ export default function About({ content }: AboutProps) {
             </p>
           ))}
 
-          <div className="mt-5 max-w-[640px]">
+          <div className="mt-4 max-w-[580px]">
             <CvGroup
               active={inView}
               heading={locale === "nb" ? "Utdanning" : "Education"}

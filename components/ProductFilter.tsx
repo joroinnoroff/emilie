@@ -1,10 +1,18 @@
 "use client"
 
 import type { Project } from "@/lib/projects"
+import type { Locale, MessageKey } from "@/lib/i18n"
 import { useLocale } from "@/lib/LocaleProvider"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useMemo, useState } from "react"
+import { motion } from "framer-motion"
+import { useEffect, useMemo, useRef, useState } from "react"
+import NaturalAspectImage from "./NaturalAspectImage"
+
+/** Scroll-down distance before auto-collapsing extra filters */
+const COLLAPSE_SCROLL_THRESHOLD = 56
+
+const filterEase = [0.22, 0.9, 0.32, 1] as const
 
 function offerLabel(
   product: Project,
@@ -34,11 +42,21 @@ const EXTRA: { value: Facet; labelKey: "shop.filter.year" | "shop.filter.series"
   { value: "series", labelKey: "shop.filter.series" },
 ]
 
-const PRICE_BUCKETS = [
-  { value: "0-1000", label: "Under 1,000", min: 0, max: 1000 },
-  { value: "1000-2000", label: "1,000 – 2,000", min: 1000, max: 2000 },
-  { value: "2000+", label: "2,000+", min: 2000, max: Infinity },
+const PRICE_BUCKETS_EUR = [
+  { value: "eur-low", labelKey: "shop.filter.price.low" as MessageKey, min: 0, max: 500 },
+  { value: "eur-mid", labelKey: "shop.filter.price.mid" as MessageKey, min: 500, max: 1500 },
+  { value: "eur-high", labelKey: "shop.filter.price.high" as MessageKey, min: 1500, max: Infinity },
 ] as const
+
+const PRICE_BUCKETS_NOK = [
+  { value: "nok-low", labelKey: "shop.filter.price.lowNb" as MessageKey, min: 0, max: 5000 },
+  { value: "nok-mid", labelKey: "shop.filter.price.midNb" as MessageKey, min: 5000, max: 15000 },
+  { value: "nok-high", labelKey: "shop.filter.price.highNb" as MessageKey, min: 15000, max: Infinity },
+] as const
+
+function priceBucketsFor(locale: Locale) {
+  return locale === "nb" ? PRICE_BUCKETS_NOK : PRICE_BUCKETS_EUR
+}
 
 function uniqueSorted(values: string[]) {
   return [...new Set(values.filter(Boolean))].sort((a, b) =>
@@ -46,11 +64,44 @@ function uniqueSorted(values: string[]) {
   )
 }
 
-function priceAmount(p: Project) {
-  return p.priceEur ?? p.priceNok ?? p.priceUsd ?? null
+/** Locale currency for a single amount field pair */
+function pickAmount(
+  locale: Locale,
+  priceNok?: number | null,
+  priceEur?: number | null,
+  priceUsd?: number | null
+) {
+  if (locale === "nb") return priceNok ?? priceEur ?? priceUsd ?? null
+  return priceEur ?? priceNok ?? priceUsd ?? null
 }
 
-function matchesFacet(p: Project, facet: Facet, value: string | null) {
+/**
+ * All buyable prices for a work (original + in-stock prints).
+ * Needed so “Under 5 000 kr” matches Trykk, not only originals.
+ */
+function availablePrices(p: Project, locale: Locale): number[] {
+  const prices: number[] = []
+  const originalOk = p.status !== "Sold" && p.stock > 0 && p.forSale
+  if (originalOk) {
+    const amt = pickAmount(locale, p.priceNok, p.priceEur, p.priceUsd)
+    if (amt != null) prices.push(amt)
+  }
+  if (p.printAvailable) {
+    for (const pr of p.prints) {
+      if (pr.stock < 1) continue
+      const amt = pickAmount(locale, pr.priceNok, pr.priceEur)
+      if (amt != null) prices.push(amt)
+    }
+  }
+  return prices
+}
+
+function matchesFacet(
+  p: Project,
+  facet: Facet,
+  value: string | null,
+  locale: Locale
+) {
   if (facet === "all") return true
   if (facet === "prints") {
     if (!p.printAvailable) return false
@@ -65,11 +116,13 @@ function matchesFacet(p: Project, facet: Facet, value: string | null) {
   if (facet === "year") return p.year === value
   if (facet === "series") return p.series === value
   if (facet === "price") {
-    const amount = priceAmount(p)
-    if (amount == null) return false
-    const bucket = PRICE_BUCKETS.find((b) => b.value === value)
+    const prices = availablePrices(p, locale)
+    if (!prices.length) return false
+    const bucket = priceBucketsFor(locale).find((b) => b.value === value)
     if (!bucket) return false
-    return amount >= bucket.min && amount < bucket.max
+    return prices.some(
+      (amount) => amount >= bucket.min && amount < bucket.max
+    )
   }
   return true
 }
@@ -98,17 +151,64 @@ function ChevronLeft({ className }: { className?: string }) {
 
 export default function ProductFilter({ products }: { products: Project[] }) {
   const [expanded, setExpanded] = useState(false)
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const scrollAccRef = useRef(0)
+  const lastScrollYRef = useRef(0)
+  const pendingScrollAccRef = useRef(0)
+  const pendingLastYRef = useRef(0)
+  const filterBarRef = useRef<HTMLDivElement>(null)
 
   //url to read 
   const facet = (searchParams.get("facet") as Facet) ?? "all"
   const value = searchParams.get("value")
 
-  
+  function clearToAll() {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("facet")
+    params.delete("value")
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }
 
-  const categories = expanded ? [...PRIMARY, ...EXTRA] : PRIMARY
+  // Drop stale price bucket when switching language (eur-* vs nok-*)
+  useEffect(() => {
+    if (facet !== "price" || !value) return
+    const valid = priceBucketsFor(locale).some((b) => b.value === value)
+    if (valid) return
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("value")
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }, [facet, value, locale, router, searchParams])
+
+  useEffect(() => {
+    if (!expanded) {
+      scrollAccRef.current = 0
+      return
+    }
+
+    lastScrollYRef.current = window.scrollY
+    scrollAccRef.current = 0
+
+    const onScroll = () => {
+      const y = window.scrollY
+      const delta = y - lastScrollYRef.current
+      lastScrollYRef.current = y
+
+      if (delta > 0) {
+        scrollAccRef.current += delta
+        if (scrollAccRef.current >= COLLAPSE_SCROLL_THRESHOLD) {
+          setExpanded(false)
+          scrollAccRef.current = 0
+        }
+      } else if (delta < 0) {
+        scrollAccRef.current = Math.max(0, scrollAccRef.current + delta)
+      }
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [expanded])
 
   const valueOptions = useMemo(() => {
     if (facet === "size") return uniqueSorted(products.map((p) => p.size))
@@ -125,128 +225,221 @@ export default function ProductFilter({ products }: { products: Project[] }) {
       )
     }
     if (facet === "price") {
-      return PRICE_BUCKETS.map((b) => ({ value: b.value, label: b.label }))
+      return priceBucketsFor(locale).map((b) => ({
+        value: b.value,
+        label: t(b.labelKey),
+      }))
     }
     return [] as string[] | { value: string; label: string }[]
-  }, [facet, products])
+  }, [facet, products, locale, t])
+
+  /** Facet open but no second-level choice yet → dismiss back to All */
+  const pendingSecondary =
+    facet !== "all" && !value && valueOptions.length > 0
+
+  useEffect(() => {
+    if (!pendingSecondary) {
+      pendingScrollAccRef.current = 0
+      return
+    }
+
+    pendingLastYRef.current = window.scrollY
+    pendingScrollAccRef.current = 0
+
+    const onScroll = () => {
+      const y = window.scrollY
+      const delta = y - pendingLastYRef.current
+      pendingLastYRef.current = y
+
+      if (delta > 0) {
+        pendingScrollAccRef.current += delta
+        if (pendingScrollAccRef.current >= COLLAPSE_SCROLL_THRESHOLD) {
+          clearToAll()
+          pendingScrollAccRef.current = 0
+        }
+      } else if (delta < 0) {
+        pendingScrollAccRef.current = Math.max(
+          0,
+          pendingScrollAccRef.current + delta
+        )
+      }
+    }
+
+    const onPointerDown = (e: MouseEvent) => {
+      const root = filterBarRef.current
+      if (!root) return
+      if (root.contains(e.target as Node)) return
+      clearToAll()
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("mousedown", onPointerDown)
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("mousedown", onPointerDown)
+    }
+    // clearToAll closes over latest searchParams via router
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSecondary, facet, searchParams, router])
 
   const visible = useMemo(
-    () => products.filter((p) => matchesFacet(p, facet, value)),
-    [products, facet, value]
+    () => products.filter((p) => matchesFacet(p, facet, value, locale)),
+    [products, facet, value, locale]
   )
 
   function selectFacet(next: Facet) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams.toString())
     if (next == "all") {
-        params.delete("facet")
-        params.delete("value")
+      params.delete("facet")
+      params.delete("value")
     } else {
-        params.set("facet", next)
-        params.delete("value")
-
+      params.set("facet", next)
+      params.delete("value")
     }
 
     router.replace(`?${params.toString()}`, { scroll: false })
   }
 
   function selectValue(next: string | null) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (!next) params.delete("value")
-        else params.set("value", next)
+    // Deselecting the only second option → back to All
+    if (!next) {
+      clearToAll()
+      return
+    }
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("value", next)
     router.replace(`?${params.toString()}`, { scroll: false })
   }
 
   return (
     <>
       <div className="mb-2 flex min-w-0 items-baseline justify-between gap-4">
-        <h1 className="min-w-0 break-words text-[clamp(2.25rem,5vw,4rem)] tracking-tight">
+        <h1 className="min-w-0 break-words text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight">
           {t("shop.allTitle")}
         </h1>
         <span className="shrink-0 text-ink-soft">({visible.length})</span>
       </div>
 
-      <div className="sticky top-[var(--header-height)] z-[150] mb-6 max-w-full bg-white py-3">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          {categories.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-base ${
-                facet === option.value
-                  ? "border-ink text-ink"
-                  : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
-              }`}
-              onClick={() => selectFacet(option.value)}
-            >
-              {t(option.labelKey)}
-            </button>
-          ))}
+      <div ref={filterBarRef} className="sticky top-[var(--header-height)] z-[150] mb-6">
+        <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 bg-white py-3">
+          <div className="mx-auto w-full max-w-[1280px] px-6 md:px-12">
+            <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-2">
+              {PRIMARY.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-base ${
+                    facet === option.value
+                      ? "border-ink text-ink"
+                      : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
+                  }`}
+                  onClick={() => selectFacet(option.value)}
+                >
+                  {t(option.labelKey)}
+                </button>
+              ))}
 
-          <button
-            type="button"
-            className="ml-1 inline-flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0 text-ink-soft hover:text-ink"
-            onClick={() => setExpanded((v) => !v)}
-            aria-label={expanded ? "Hide filters" : "More filters"}
-            aria-expanded={expanded}
-          >
-            {expanded ? <ChevronLeft /> : <ChevronRight />}
-          </button>
-        </div>
-
-        {facet !== "all" && valueOptions.length > 0 ? (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {facet === "price"
-              ? (valueOptions as { value: string; label: string }[]).map((opt) => (
-                  <button
-                    key={opt.value}
+              <motion.div
+                initial={false}
+                animate={{
+                  width: expanded ? "auto" : 0,
+                  opacity: expanded ? 1 : 0,
+                }}
+                transition={{ duration: 0.42, ease: filterEase }}
+                className={`flex items-center gap-x-3 overflow-hidden whitespace-nowrap ${
+                  expanded ? "" : "pointer-events-none"
+                }`}
+              >
+                {EXTRA.map((option, i) => (
+                  <motion.button
+                    key={option.value}
                     type="button"
-                    className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
-                      value === opt.value
+                    tabIndex={expanded ? 0 : -1}
+                    initial={false}
+                    animate={
+                      expanded
+                        ? { opacity: 1, y: 0 }
+                        : { opacity: 0, y: "0.55em" }
+                    }
+                    transition={{
+                      duration: 0.45,
+                      delay: expanded
+                        ? 0.06 + i * 0.055
+                        : (EXTRA.length - 1 - i) * 0.04,
+                      ease: filterEase,
+                    }}
+                    className={`shrink-0 cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-base ${
+                      facet === option.value
                         ? "border-ink text-ink"
                         : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
                     }`}
-                    onClick={() => selectValue(value === opt.value ? null : opt.value)}
+                    onClick={() => selectFacet(option.value)}
                   >
-                    {opt.label}
-                  </button>
-                ))
-              : (valueOptions as string[]).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
-                      value === opt
-                        ? "border-ink text-ink"
-                        : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
-                    }`}
-                    onClick={() => selectValue(value === opt ? null : opt)}
-                  >
-                    {opt}
-                  </button>
+                    {t(option.labelKey)}
+                  </motion.button>
                 ))}
+              </motion.div>
+
+              <button
+                type="button"
+                className="inline-flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0 text-ink-soft transition-colors hover:text-ink"
+                onClick={() => setExpanded((v) => !v)}
+                aria-label={expanded ? "Hide filters" : "More filters"}
+                aria-expanded={expanded}
+              >
+                {expanded ? <ChevronLeft /> : <ChevronRight />}
+              </button>
+            </div>
+
+            {facet !== "all" && valueOptions.length > 0 ? (
+              <div className="mt-3 flex w-full flex-wrap items-center gap-2">
+                {facet === "price"
+                  ? (valueOptions as { value: string; label: string }[]).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
+                          value === opt.value
+                            ? "border-ink text-ink"
+                            : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
+                        }`}
+                        onClick={() => selectValue(value === opt.value ? null : opt.value)}
+                      >
+                        {opt.label}
+                      </button>
+                    ))
+                  : (valueOptions as string[]).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
+                          value === opt
+                            ? "border-ink text-ink"
+                            : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
+                        }`}
+                        onClick={() => selectValue(value === opt ? null : opt)}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-14 min-h-full mb-10 w-full">
+      <div className="mx-auto mb-10 flex min-h-full w-full max-w-[300px] flex-col gap-32 md:max-w-[360px] md:gap-60">
         {visible.map((product) => {
           const href =
             facet === "prints"
               ? `/shop/${product.id}?version=print${value ? `&size=${encodeURIComponent(value)}` : ""}`
               : `/shop/${product.id}`
           return (
-            <Link href={href} key={product.id} className="w-full min-w-0">
-              <div className="aspect-[4/5] overflow-hidden bg-[#eee] mb-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="size flex justify-between items-baseline gap-3 my-2 min-w-0">
+            <Link href={href} key={product.id} className="flex w-full min-w-0 flex-col gap-3">
+              <NaturalAspectImage src={product.image} alt={product.title} />
+              <div className="flex min-w-0 items-baseline justify-between gap-5 pt-1">
                 <h2 className="min-w-0 truncate text-[1.125rem] font-medium">{product.title}</h2>
-                <span className="shrink-0 text-ink-soft text-sm">
+                <span className="shrink-0 text-sm text-ink-soft">
                   {facet === "prints"
                     ? value || t("shop.filter.prints")
                     : product.size}
@@ -254,9 +447,18 @@ export default function ProductFilter({ products }: { products: Project[] }) {
               </div>
               {(() => {
                 const label = offerLabel(product, t)
-                return label ? (
-                  <p className="text-ink-soft text-sm">{label}</p>
-                ) : null
+                if (!label) return null
+                const parts = label.split("·").map((p) => p.trim()).filter(Boolean)
+                if (parts.length === 2) {
+                  return (
+                    <p className="flex items-center gap-2 text-sm text-ink-soft">
+                      <span>{parts[0]}</span>
+                      <span aria-hidden>·</span>
+                      <span>{parts[1]}</span>
+                    </p>
+                  )
+                }
+                return <p className="text-sm text-ink-soft">{label}</p>
               })()}
             </Link>
           )

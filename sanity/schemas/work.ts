@@ -150,8 +150,10 @@ export const work = defineType({
     }),
     defineField({
       name: "featured",
-      title: "Featured on homepage",
+      title: "Featured on homepage (fallback)",
       type: "boolean",
+      description:
+        "Used only if Site Settings → Utvalgte verk is empty. Prefer ordering works there.",
       initialValue: false,
     }),
     defineField({
