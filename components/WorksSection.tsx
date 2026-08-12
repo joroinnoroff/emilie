@@ -68,11 +68,11 @@ export default function WorksSection({ works }: WorksSectionProps) {
   return (
     <section className="relative mt-10 overflow-hidden pt-[120px] pb-20 md:pt-[140px]" id="works">
       <Wrap>
-        <div className="mb-9 flex items-end justify-between gap-6">
-          <h2 className="text-[clamp(2.25rem,4.2vw,3.5rem)] tracking-tight">
+        <div className="mb-9 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+          <h2 className="min-w-0 max-w-full flex-1 basis-[12rem] text-[clamp(1.75rem,6vw,3.5rem)] tracking-tight">
             {t("works.heading")}
           </h2>
-          <Link href="/projects" className={textLinkClass}>
+          <Link href="/projects" className={`${textLinkClass} shrink-0 whitespace-nowrap`}>
             {t("works.all")}
           </Link>
         </div>

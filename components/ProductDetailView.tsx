@@ -24,6 +24,8 @@ export default function ProductDetailView({
 }: ProductDetailViewProps) {
   const { locale, t } = useLocale()
   const cartAnchorRef = useRef<HTMLDivElement>(null)
+  const stickyScopeRef = useRef<HTMLDivElement>(null)
+  const metaRef = useRef<HTMLDivElement>(null)
   const [imageScale, setImageScale] = useState(1)
   const [isDesktop, setIsDesktop] = useState(false)
   const printSizes = product.prints.filter((p) => p.stock > 0).length
@@ -38,9 +40,33 @@ export default function ProductDetailView({
       raf = 0
       const desktop = mq.matches
       setIsDesktop(desktop)
-      // Henrik-style: progress from scrollY, scale 1 → ~0.26
-      const progress = Math.min(window.scrollY / 480, 1)
-      setImageScale(1 - progress * 0.74)
+
+      if (desktop) {
+        const progress = Math.min(window.scrollY / 480, 1)
+        setImageScale(1 - progress * 0.74)
+        return
+      }
+
+      // Mobile / tablet: only shrink a little while sticky scope is active,
+      // and stop once medium — year reaches under the header.
+      const meta = metaRef.current
+      const scope = stickyScopeRef.current
+      if (!meta || !scope) {
+        setImageScale(1)
+        return
+      }
+
+      const headerOffset = 96
+      const metaTop = meta.getBoundingClientRect().top
+      const scopeTop = scope.getBoundingClientRect().top
+      const travel = Math.max(1, metaTop - scopeTop - headerOffset)
+      const scrolled = Math.min(
+        1,
+        Math.max(0, (headerOffset - scopeTop) / travel)
+      )
+      // Mild shrink only (1 → ~0.72), freeze when meta hits the header
+      const capped = metaTop <= headerOffset ? 0.72 : 1 - scrolled * 0.28
+      setImageScale(Math.max(0.72, capped))
     }
 
     const onScroll = () => {
@@ -71,6 +97,12 @@ export default function ProductDetailView({
     window.scrollTo({ top: Math.max(0, top), behavior: "smooth" })
   }
 
+  const metaLine = (
+    <div ref={metaRef} className="mb-2 text-sm text-ink-soft">
+      {product.medium} — {product.year}
+    </div>
+  )
+
   return (
     <>
       <section className="pt-[130px]">
@@ -93,23 +125,38 @@ export default function ProductDetailView({
         </Wrap>
 
         <Wrap className="grid grid-cols-1 items-start gap-[60px] min-[861px]:grid-cols-[0.95fr_1fr] max-[860px]:gap-8">
+          {/* Mobile: sticky only until medium — year; desktop: full sticky column */}
           <div
+            ref={stickyScopeRef}
             className={
               isDesktop
                 ? "sticky top-[110px] z-30 flex min-h-[calc(100vh-140px)] items-start justify-start overflow-visible"
-                : "sticky top-24 z-30 mb-2 overflow-visible"
+                : "relative z-30"
             }
           >
-            <FullscreenImage
-              src={product.image}
-              alt={product.title}
-              scale={imageScale}
-              origin={isDesktop ? "top right" : "bottom right"}
-            />
+            <div
+              className={
+                isDesktop
+                  ? "contents"
+                  : "sticky top-24 mb-3 overflow-visible"
+              }
+            >
+              <FullscreenImage
+                src={product.image}
+                alt={product.title}
+                scale={imageScale}
+                origin={isDesktop ? "top right" : "bottom right"}
+              />
+            </div>
+            {/* Stop marker for mobile sticky — releases before title/description */}
+            <div className="min-[861px]:hidden">
+              {metaLine}
+              <div className="h-[12vh]" aria-hidden="true" />
+            </div>
           </div>
 
           <div>
-            <div className="mb-2 text-sm text-ink-soft">
+            <div className="mb-2 hidden text-sm text-ink-soft min-[861px]:block">
               {product.medium} — {product.year}
             </div>
             <h1 className="mb-4 text-[clamp(2rem,4vw,3rem)] tracking-tight">

@@ -74,6 +74,8 @@ function CvGroup({
 export default function About({ content }: AboutProps) {
   const { locale } = useLocale()
   const sectionRef = useRef<HTMLElement>(null)
+  const mediaRef = useRef<HTMLDivElement>(null)
+  const imageRef = useRef<HTMLImageElement>(null)
   const [inView, setInView] = useState(false)
 
   const bio =
@@ -87,21 +89,39 @@ export default function About({ content }: AboutProps) {
 
   useEffect(() => {
     const el = sectionRef.current
+    const media = mediaRef.current
+    const image = imageRef.current
     if (!el) return
 
+    let raf = 0
     const update = () => {
+      raf = 0
       const { top, bottom } = el.getBoundingClientRect()
       const active = top <= 0 && bottom > 0
       setInView(active)
       document.documentElement.dataset.aboutTheme = active ? "1" : ""
+
+      if (media && image) {
+        const rect = media.getBoundingClientRect()
+        const viewH = window.innerHeight || 1
+        const offset = rect.top + rect.height * 0.5 - viewH * 0.5
+        const shift = Math.max(-56, Math.min(56, offset * -0.18))
+        image.style.transform = `translate3d(0, ${shift}px, 0) scale(1.14)`
+      }
+    }
+
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(update)
     }
 
     update()
-    window.addEventListener("scroll", update, { passive: true })
-    window.addEventListener("resize", update)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("resize", onScroll)
     return () => {
-      window.removeEventListener("scroll", update)
-      window.removeEventListener("resize", update)
+      if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("resize", onScroll)
       document.documentElement.dataset.aboutTheme = ""
     }
   }, [])
@@ -120,8 +140,12 @@ export default function About({ content }: AboutProps) {
       <div className="mx-auto grid min-h-[140vh] w-full max-w-[1480px] grid-cols-1 gap-10 px-6 pt-[100px] pb-[120px] md:grid-cols-[0.95fr_1.15fr] md:gap-14 md:px-12 lg:gap-20">
         <div className="relative order-2 md:order-1">
           <div className="md:sticky md:top-[88px] md:flex md:h-[calc(100vh-88px)] md:items-center">
-            <div className="relative aspect-[4/5] w-full overflow-hidden md:max-h-[78vh]">
+            <div
+              ref={mediaRef}
+              className="relative aspect-[4/5] w-full overflow-hidden md:max-h-[78vh]"
+            >
               <Image
+                ref={imageRef}
                 src="/about-portrait.png"
                 alt={
                   locale === "nb"
@@ -130,7 +154,8 @@ export default function About({ content }: AboutProps) {
                 }
                 fill
                 sizes="(max-width: 768px) 100vw, 44vw"
-                className="object-cover object-[50%_18%]"
+                className="object-cover object-[50%_18%] will-change-transform"
+                style={{ transform: "translate3d(0, 0, 0) scale(1.14)" }}
                 priority={false}
               />
             </div>

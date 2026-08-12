@@ -29,12 +29,12 @@ export default function Shop({ items }: ShopProps) {
   return (
     <section className="border-t border-line pt-[140px] pb-[90px] md:pt-[160px]" id="shop">
       <Wrap>
-        <div className="mb-10 flex items-end justify-between gap-6">
-          <h2 className="text-[clamp(2.25rem,4.2vw,3.5rem)] tracking-tight">
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+          <h2 className="min-w-0 max-w-full flex-1 basis-[12rem] text-[clamp(1.75rem,6vw,3.5rem)] tracking-tight">
             {t("shop.heading")}
           </h2>
 
-          <Link href="/shop" className={textLinkClass}>
+          <Link href="/shop" className={`${textLinkClass} shrink-0 whitespace-nowrap`}>
             {t("shop.all")}
           </Link>
         </div>
