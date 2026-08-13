@@ -8,7 +8,7 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Emilie W. Lien — Paintings",
+    default: "Emilie W. Lien",
     template: "%s · Emilie W. Lien",
   },
   description: "Original oil paintings and exhibitions by Emilie W. Lien.",
@@ -16,13 +16,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "nb_NO",
     siteName: "Emilie W. Lien",
-    title: "Emilie W. Lien — Paintings",
+    title: "Emilie W. Lien",
     description: "Original oil paintings and exhibitions by Emilie W. Lien.",
   },
   twitter: {
     // Smaller square preview — sharper than summary_large_image banners
     card: "summary",
-    title: "Emilie W. Lien — Paintings",
+    title: "Emilie W. Lien",
     description: "Original oil paintings and exhibitions by Emilie W. Lien.",
   },
 }

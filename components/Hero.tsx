@@ -1,7 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react"
 import { createPortal } from "react-dom"
 import InfinityBanner from "./InfinityBanner"
 import type { SiteSettings } from "@/lib/sanity-content"
@@ -86,6 +92,9 @@ export default function Hero({ settings }: HeroProps) {
   const [fullscreen, setFullscreen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [muted, setMuted] = useState(true)
+  const [progress, setProgress] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const seekingRef = useRef(false)
 
   const statement = localized(locale, settings.heroStatement, settings.heroStatementNb)
   const cta =
@@ -145,12 +154,29 @@ export default function Hero({ settings }: HeroProps) {
     }
     setFullscreen(false)
     setMuted(true)
+    setProgress(0)
+    setDuration(0)
   }, [])
 
   const openFullscreen = useCallback(() => {
     setMuted(true)
     setFullscreen(true)
     videoRef.current?.pause()
+  }, [])
+
+  const seekToRatio = useCallback((ratio: number) => {
+    const fs = fsVideoRef.current
+    if (!fs || !Number.isFinite(fs.duration) || fs.duration <= 0) return
+    const next = Math.max(0, Math.min(1, ratio))
+    fs.currentTime = next * fs.duration
+    setProgress(next)
+  }, [])
+
+  const formatTime = useCallback((seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return "0:00"
+    const m = Math.floor(seconds / 60)
+    const s = Math.floor(seconds % 60)
+    return `${m}:${String(s).padStart(2, "0")}`
   }, [])
 
   useEffect(() => {
@@ -192,6 +218,36 @@ export default function Hero({ settings }: HeroProps) {
     }
   }, [fullscreen, muted])
 
+  useEffect(() => {
+    if (!fullscreen) return
+    const fs = fsVideoRef.current
+    if (!fs) return
+
+    const syncDuration = () => {
+      if (Number.isFinite(fs.duration) && fs.duration > 0) {
+        setDuration(fs.duration)
+      }
+    }
+    const onTimeUpdate = () => {
+      if (seekingRef.current) return
+      syncDuration()
+      if (Number.isFinite(fs.duration) && fs.duration > 0) {
+        setProgress(fs.currentTime / fs.duration)
+      }
+    }
+
+    syncDuration()
+    onTimeUpdate()
+    fs.addEventListener("timeupdate", onTimeUpdate)
+    fs.addEventListener("loadedmetadata", syncDuration)
+    fs.addEventListener("durationchange", syncDuration)
+    return () => {
+      fs.removeEventListener("timeupdate", onTimeUpdate)
+      fs.removeEventListener("loadedmetadata", syncDuration)
+      fs.removeEventListener("durationchange", syncDuration)
+    }
+  }, [fullscreen])
+
   const overlay =
     mounted && fullscreen
       ? createPortal(
@@ -222,15 +278,7 @@ export default function Hero({ settings }: HeroProps) {
                 className="h-full w-full object-cover"
               />
 
-              <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between bg-gradient-to-b from-black/50 to-transparent p-3 pb-12">
-                <button
-                  type="button"
-                  className="inline-flex h-10 w-10 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-white transition-opacity hover:opacity-70"
-                  onClick={closeFullscreen}
-                  aria-label={locale === "nb" ? "Lukk" : "Close"}
-                >
-                  <CloseIcon />
-                </button>
+              <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-end gap-1 bg-gradient-to-b from-black/50 to-transparent p-3 pb-12">
                 {audioEnabled ? (
                   <button
                     type="button"
@@ -249,6 +297,54 @@ export default function Hero({ settings }: HeroProps) {
                     <SpeakerIcon muted={muted} />
                   </button>
                 ) : null}
+                <button
+                  type="button"
+                  className="inline-flex h-10 w-10 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-white transition-opacity hover:opacity-70"
+                  onClick={closeFullscreen}
+                  aria-label={locale === "nb" ? "Lukk" : "Close"}
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+
+              <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 to-transparent px-3 pt-10 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <div className="mb-1.5 flex items-center justify-between text-[11px] tabular-nums text-white/80">
+                  <span>{formatTime(progress * duration)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+                <label className="sr-only" htmlFor="hero-fs-seek">
+                  {locale === "nb" ? "Spol i video" : "Seek video"}
+                </label>
+                <input
+                  id="hero-fs-seek"
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.001}
+                  value={progress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(progress * 100)}
+                  aria-label={locale === "nb" ? "Spol i video" : "Seek video"}
+                  className="hero-fs-seek w-full cursor-pointer appearance-none bg-transparent"
+                  style={
+                    {
+                      ["--hero-seek"]: `${Math.round(progress * 1000) / 10}%`,
+                    } as CSSProperties
+                  }
+                  onPointerDown={() => {
+                    seekingRef.current = true
+                  }}
+                  onPointerUp={() => {
+                    seekingRef.current = false
+                  }}
+                  onPointerCancel={() => {
+                    seekingRef.current = false
+                  }}
+                  onChange={(e) => {
+                    seekToRatio(Number(e.target.value))
+                  }}
+                />
               </div>
             </div>
           </div>,

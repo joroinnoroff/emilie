@@ -1,9 +1,13 @@
 import { ImageResponse } from "next/og"
 
-/** Compact OG card — restrained type, less empty stretch than a huge banner */
 export const alt = "Emilie W. Lien"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
+
+const TL = "#b8c9a8"
+const TR = "#a8c4d8"
+const BL = "#e8b4bc"
+const BR = "#f0e4b8"
 
 export default function OpenGraphImage() {
   return new ImageResponse(
@@ -30,28 +34,19 @@ export default function OpenGraphImage() {
         >
           <div
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 12,
-              background: "#111111",
+              width: 96,
+              height: 96,
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 28,
+              flexWrap: "wrap",
+              marginBottom: 32,
+              overflow: "hidden",
+              borderRadius: 4,
             }}
           >
-            <div
-              style={{
-                color: "#ffffff",
-                fontSize: 30,
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontWeight: 500,
-                lineHeight: 1,
-                marginTop: -2,
-              }}
-            >
-              E
-            </div>
+            <div style={{ width: "50%", height: "50%", background: TL }} />
+            <div style={{ width: "50%", height: "50%", background: TR }} />
+            <div style={{ width: "50%", height: "50%", background: BL }} />
+            <div style={{ width: "50%", height: "50%", background: BR }} />
           </div>
           <div
             style={{
@@ -64,7 +59,6 @@ export default function OpenGraphImage() {
           >
             Emilie W. Lien
           </div>
-         
         </div>
       </div>
     ),
