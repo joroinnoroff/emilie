@@ -28,8 +28,8 @@ type WorksSectionProps = {
 export default function WorksSection({ works }: WorksSectionProps) {
   const { t } = useLocale()
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: (viewSize, snapSize) => (viewSize - snapSize) * 0.32,
-    containScroll: false,
+    align: "start",
+    containScroll: "trimSnaps",
     dragFree: false,
     skipSnaps: false,
     duration: 25,
@@ -83,25 +83,25 @@ export default function WorksSection({ works }: WorksSectionProps) {
 
       <div className="relative">
         <div
-          className="overflow-hidden px-6 md:px-12"
+          className="overflow-hidden pl-9 pr-6 md:pl-14 md:pr-12"
           ref={emblaRef}
         >
           <div className="flex touch-pan-y gap-5 md:gap-7">
             {works.map((p) => (
               <article
                 key={p.id}
-                className="flex min-w-0 shrink-0 grow-0 basis-[85%] flex-col max-[600px]:basis-[85%] min-[600px]:basis-[55%] min-[900px]:basis-[42%] min-[1200px]:basis-[36%]"
+                className="flex min-w-0 shrink-0 grow-0 basis-auto flex-col"
               >
-                <div className="mx-auto flex w-fit max-w-full flex-col">
+                <div className="flex w-fit flex-col">
                   <Link
                     href={`/shop/${p.id}`}
-                    className="relative mb-4 block overflow-hidden bg-[#eee]"
+                    className="relative mb-4 block h-[min(68vh,480px)] w-fit overflow-hidden bg-[#eee] md:h-[min(62vh,520px)]"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.image}
                       alt={p.title}
-                      className="block h-auto max-h-[min(68vh,480px)] w-auto max-w-full select-none md:max-h-[min(62vh,520px)]"
+                      className="block h-full w-auto max-w-[min(92vw,820px)] select-none md:max-w-[min(75vw,900px)]"
                       draggable={false}
                     />
                   </Link>

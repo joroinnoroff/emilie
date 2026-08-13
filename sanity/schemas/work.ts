@@ -143,6 +143,13 @@ export const work = defineType({
       initialValue: "Available",
     }),
     defineField({
+      name: "soldAt",
+      title: "Sold at",
+      type: "datetime",
+      description: "Set automatically when marked sold (inquiry or work action)",
+      hidden: ({ parent }) => parent?.status !== "Sold",
+    }),
+    defineField({
       name: "forSale",
       title: "Show in shop",
       type: "boolean",

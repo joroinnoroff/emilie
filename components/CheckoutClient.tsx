@@ -68,6 +68,7 @@ export default function CheckoutClient() {
             qty: line.qty,
             priceNok: line.priceNok,
             priceEur: line.priceEur,
+            image: line.image,
           })),
         }),
       })

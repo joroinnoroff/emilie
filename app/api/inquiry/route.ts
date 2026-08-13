@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { canWriteSanity, writeClient } from "@/sanity/lib/write-client"
 
 type InquiryLine = {
   id: string
@@ -10,6 +11,7 @@ type InquiryLine = {
   qty: number
   priceNok?: number
   priceEur?: number
+  image?: string
 }
 
 type InquiryBody = {
@@ -44,6 +46,19 @@ function formatLine(line: InquiryLine) {
   }`
 }
 
+async function resolveWorkId(productId: string): Promise<string | null> {
+  if (!canWriteSanity || !productId) return null
+  try {
+    const id = await writeClient.fetch<string | null>(
+      `*[_type == "work" && slug.current == $slug][0]._id`,
+      { slug: productId }
+    )
+    return id || null
+  } catch {
+    return null
+  }
+}
+
 export async function POST(req: Request) {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
@@ -65,6 +80,7 @@ export async function POST(req: Request) {
   const phone = (body.phone || "").trim()
   const message = (body.message || "").trim()
   const shippingLocation = (body.shippingLocation || "").trim()
+  const locale = (body.locale || "").trim() || undefined
   const lines = Array.isArray(body.lines) ? body.lines : []
 
   if (!name || !email || !phone || !shippingLocation || !lines.length) {
@@ -76,6 +92,47 @@ export async function POST(req: Request) {
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "Invalid email." }, { status: 400 })
+  }
+
+  // Persist to Sanity first so Studio has a record even if email fails later.
+  if (canWriteSanity) {
+    try {
+      const sanityLines = await Promise.all(
+        lines.map(async (line) => {
+          const workId = await resolveWorkId(line.productId)
+          return {
+            _type: "inquiryLine" as const,
+            _key: line.id.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 64),
+            ...(workId
+              ? { work: { _type: "reference" as const, _ref: workId } }
+              : {}),
+            title: line.title,
+            variant: line.variant,
+            printSize: line.printSize || undefined,
+            qty: line.qty,
+            priceNok: line.priceNok,
+            priceEur: line.priceEur,
+            imageUrl: line.image || undefined,
+          }
+        })
+      )
+
+      await writeClient.create({
+        _type: "inquiry",
+        status: "new",
+        receivedAt: new Date().toISOString(),
+        name,
+        email,
+        phone,
+        shippingLocation,
+        message: message || undefined,
+        locale,
+        lines: sanityLines,
+      })
+    } catch (err) {
+      console.error("Sanity inquiry create failed:", err)
+      // Continue to email — admin still gets Resend notification
+    }
   }
 
   const to =
@@ -115,6 +172,7 @@ export async function POST(req: Request) {
     <ul>${lineHtml}</ul>
     <h3>Message</h3>
     <p>${escapeHtml(message || "(none)").replace(/\n/g, "<br/>")}</p>
+    <p style="color:#666;font-size:12px">Also saved in Sanity Studio → Inquiries</p>
   `
 
   try {

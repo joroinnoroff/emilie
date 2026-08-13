@@ -168,6 +168,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
     const params = new URLSearchParams(searchParams.toString())
     params.delete("facet")
     params.delete("value")
+    params.delete("prints")
     router.replace(`?${params.toString()}`, { scroll: false })
   }
 
@@ -292,9 +293,11 @@ export default function ProductFilter({ products }: { products: Project[] }) {
     if (next == "all") {
       params.delete("facet")
       params.delete("value")
+      params.delete("prints")
     } else {
       params.set("facet", next)
       params.delete("value")
+      params.delete("prints")
     }
 
     router.replace(`?${params.toString()}`, { scroll: false })
@@ -308,7 +311,21 @@ export default function ProductFilter({ products }: { products: Project[] }) {
     }
     const params = new URLSearchParams(searchParams.toString())
     params.set("value", next)
+    // Price buckets include print prices — keep Prints visually active too
+    if (facet === "price") {
+      params.set("prints", "1")
+    } else {
+      params.delete("prints")
+    }
     router.replace(`?${params.toString()}`, { scroll: false })
+  }
+
+  const priceIncludesPrints =
+    facet === "price" && Boolean(value) && searchParams.get("prints") === "1"
+
+  function isFacetActive(option: Facet) {
+    if (option === "prints") return facet === "prints" || priceIncludesPrints
+    return facet === option
   }
 
   return (
@@ -322,14 +339,14 @@ export default function ProductFilter({ products }: { products: Project[] }) {
 
       <div ref={filterBarRef} className="sticky top-[var(--header-height)] z-[150] mb-6">
         <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 bg-white py-3">
-          <div className="mx-auto w-full max-w-[1280px] px-6 md:px-12">
-            <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="w-full px-6 md:px-12">
+            <div className="flex w-fit max-w-full flex-nowrap items-center gap-x-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {PRIMARY.map((option) => (
                 <button
                   key={option.value}
                   type="button"
-                  className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-base ${
-                    facet === option.value
+                  className={`shrink-0 cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-base ${
+                    isFacetActive(option.value)
                       ? "border-ink text-ink"
                       : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
                   }`}
@@ -346,7 +363,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
                   opacity: expanded ? 1 : 0,
                 }}
                 transition={{ duration: 0.42, ease: filterEase }}
-                className={`flex items-center gap-x-3 overflow-hidden whitespace-nowrap ${
+                className={`flex shrink-0 flex-nowrap items-center gap-x-3 overflow-hidden whitespace-nowrap ${
                   expanded ? "" : "pointer-events-none"
                 }`}
               >
@@ -392,13 +409,13 @@ export default function ProductFilter({ products }: { products: Project[] }) {
             </div>
 
             {facet !== "all" && valueOptions.length > 0 ? (
-              <div className="mt-3 flex w-full flex-wrap items-center gap-2">
+              <div className="mt-3 flex w-full flex-nowrap items-center gap-x-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {facet === "price"
                   ? (valueOptions as { value: string; label: string }[]).map((opt) => (
                       <button
                         key={opt.value}
                         type="button"
-                        className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
+                        className={`shrink-0 cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
                           value === opt.value
                             ? "border-ink text-ink"
                             : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
@@ -412,7 +429,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
                       <button
                         key={opt}
                         type="button"
-                        className={`cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
+                        className={`shrink-0 cursor-pointer whitespace-nowrap border-0 border-b bg-transparent p-0 py-1 font-inherit text-[0.9375rem] ${
                           value === opt
                             ? "border-ink text-ink"
                             : "border-transparent text-ink-soft hover:border-ink hover:text-ink"
@@ -428,20 +445,24 @@ export default function ProductFilter({ products }: { products: Project[] }) {
         </div>
       </div>
 
-      <div className="mx-auto mb-10 flex min-h-full w-full max-w-[300px] flex-col gap-32 md:max-w-[360px] md:gap-60">
+      <div className="mx-auto mb-10 flex min-h-full w-full max-w-[328px] flex-col gap-40 min-[600px]:max-w-[400px] min-[600px]:gap-80 lg:gap-64">
         {visible.map((product) => {
           const href =
-            facet === "prints"
-              ? `/shop/${product.id}?version=print${value ? `&size=${encodeURIComponent(value)}` : ""}`
+            facet === "prints" || priceIncludesPrints
+              ? `/shop/${product.id}?version=print${
+                  facet === "prints" && value
+                    ? `&size=${encodeURIComponent(value)}`
+                    : ""
+                }`
               : `/shop/${product.id}`
           return (
-            <Link href={href} key={product.id} className="flex w-full min-w-0 flex-col gap-3">
+            <Link href={href} key={product.id} className="flex w-full min-w-0 flex-col gap-3.5">
               <NaturalAspectImage src={product.image} alt={product.title} />
               <div className="flex min-w-0 items-baseline justify-between gap-5 pt-1">
                 <h2 className="min-w-0 truncate text-[1.125rem] font-medium">{product.title}</h2>
                 <span className="shrink-0 text-sm text-ink-soft">
-                  {facet === "prints"
-                    ? value || t("shop.filter.prints")
+                  {facet === "prints" || priceIncludesPrints
+                    ? (facet === "prints" && value) || t("shop.filter.prints")
                     : product.size}
                 </span>
               </div>

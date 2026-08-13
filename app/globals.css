@@ -23,6 +23,8 @@
     --header-height: 4.25rem;
   }
   html {
+    /* Tiny global type scale-down (rem / Tailwind text-* follow this) */
+    font-size: 97.5%;
     scroll-behavior: smooth;
     background: #fff;
   }
