@@ -1,9 +1,23 @@
 import type { Metadata } from "next"
 import "./globals.css"
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://emilie.no"
+function resolveSiteUrl() {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "")
+  if (fromEnv) return fromEnv
+  const fromVercel = process.env.VERCEL_PROJECT_PRODUCTION_URL?.replace(
+    /\/$/,
+    ""
+  )
+  if (fromVercel) {
+    return fromVercel.startsWith("http")
+      ? fromVercel
+      : `https://${fromVercel}`
+  }
+  // Canonical production host (not emilie.no — that breaks OG/Twitter image URLs)
+  return "https://www.emiliewlien.no"
+}
+
+const siteUrl = resolveSiteUrl()
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -15,14 +29,25 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "nb_NO",
+    url: siteUrl,
     siteName: "Emilie W. Lien",
     title: "Emilie W. Lien",
     description: "Original oil paintings and exhibitions by Emilie W. Lien.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Emilie W. Lien",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Emilie W. Lien",
     description: "Original oil paintings and exhibitions by Emilie W. Lien.",
+    images: ["/twitter-image"],
   },
 }
 
