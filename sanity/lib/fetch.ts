@@ -186,12 +186,13 @@ export async function getFeaturedWorks(): Promise<Project[]> {
   try {
     const fetchOpts = { next: { revalidate: 30, tags: ["works", "siteSettings"] } }
 
+    const orderedDocs = await client.fetch<(SanityWork | null)[]>(
+      featuredWorksOrderedQuery,
+      {},
+      fetchOpts
+    )
     const ordered = normalizeWorks(
-      await client.fetch<(SanityWork | null)[]>(
-        featuredWorksOrderedQuery,
-        {},
-        fetchOpts
-      )
+      orderedDocs.filter((doc): doc is SanityWork => doc != null)
     )
     if (ordered.length) return ordered
 
