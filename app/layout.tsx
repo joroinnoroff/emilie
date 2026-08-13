@@ -20,8 +20,7 @@ export const metadata: Metadata = {
     description: "Original oil paintings and exhibitions by Emilie W. Lien.",
   },
   twitter: {
-    // Smaller square preview — sharper than summary_large_image banners
-    card: "summary",
+    card: "summary_large_image",
     title: "Emilie W. Lien",
     description: "Original oil paintings and exhibitions by Emilie W. Lien.",
   },
