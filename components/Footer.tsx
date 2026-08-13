@@ -93,11 +93,11 @@ export default function Footer({ settings }: FooterProps) {
         <div
           className={
             hideNewsletter
-              ? "flex flex-col items-start gap-4 text-xs text-ink-soft lg:flex-row lg:items-end lg:justify-between lg:gap-6"
-              : "flex flex-col items-start gap-4 border-t border-line pt-7 text-xs text-ink-soft lg:flex-row lg:items-end lg:justify-between lg:gap-6"
+              ? "flex flex-col gap-4 text-xs text-ink-soft lg:flex-row lg:items-end lg:justify-between lg:gap-6"
+              : "flex flex-col gap-4 border-t border-line pt-7 text-xs text-ink-soft lg:flex-row lg:items-end lg:justify-between lg:gap-6"
           }
         >
-          <div className="order-1 flex items-center gap-4 text-ink-soft lg:order-2">
+          <div className="flex items-center gap-4 lg:order-2">
             <a
               href={`mailto:${email}`}
               className="inline-flex transition-colors duration-300 hover:text-ink"
@@ -115,8 +115,10 @@ export default function Footer({ settings }: FooterProps) {
               <InstagramIcon />
             </a>
           </div>
-          <span className="order-2 lg:order-1">{t("footer.rights")}</span>
-          <span className="order-3 text-[0.65rem] lg:order-3">Made by Oino</span>
+          <div className="flex w-full items-baseline justify-between gap-4 lg:contents">
+            <span className="lg:order-1">{t("footer.rights")}</span>
+            <span className="text-[0.55rem] lg:order-3">Made by Oino</span>
+          </div>
         </div>
       </Wrap>
     </footer>

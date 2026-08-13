@@ -138,12 +138,6 @@ export default function About({ content }: AboutProps) {
           : "border-line bg-white text-ink"
       )}
     >
-      {/* Anchor sits further into the tall section so nav /#about scrolls deeper */}
-      <div
-        id="about"
-        aria-hidden
-        className="pointer-events-none absolute top-[min(28vh,270px)] left-0 h-px w-px scroll-mt-28 min-[861px]:top-[min(37vh,360px)] lg:top-[min(34vh,340px)]"
-      />
       <div className="mx-auto grid min-h-[140vh] w-full max-w-[1480px] grid-cols-1 gap-10 px-6 pt-[100px] pb-[56px] md:grid-cols-[0.78fr_1.22fr] md:gap-14 md:px-12 md:pb-[72px] lg:gap-16">
         <div className="relative order-2 md:order-1">
           <div className="md:sticky md:top-[88px] md:flex md:h-[calc(100vh-88px)] md:items-center md:justify-center">
@@ -171,8 +165,9 @@ export default function About({ content }: AboutProps) {
 
         <div className="order-1 flex flex-col justify-center md:order-2 md:py-8">
           <h2
+            id="about"
             className={cn(
-              "mb-6 text-[clamp(1.65rem,2.8vw,2.4rem)] leading-[1.05] tracking-tight transition-colors duration-500",
+              "mb-6 scroll-mt-[116px] text-[clamp(1.65rem,2.8vw,2.4rem)] leading-[1.05] tracking-tight transition-colors duration-500 max-[860px]:scroll-mt-[68px] min-[861px]:max-lg:scroll-mt-[104px]",
               inView ? "text-white" : "text-ink"
             )}
           >

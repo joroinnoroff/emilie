@@ -264,7 +264,7 @@ export default function Hero({ settings }: HeroProps) {
       >
         <div className="relative shrink-0">
           {banner ? <InfinityBanner text={banner} /> : null}
-          <div className="pt-[5.75rem] pl-9 max-[860px]:pt-[4.5rem] max-[860px]:pl-[1.85rem]">
+          <div className="pt-[7.5rem] pl-9 max-[860px]:pt-[8.25rem] max-[860px]:pl-[1.85rem]">
             <Wrap className="flex flex-col gap-8 pb-9 max-[860px]:gap-7 max-[860px]:pb-8">
               <h1 className="max-w-[18ch] text-[clamp(1.85rem,3.2vw,2.85rem)] leading-[1.05] tracking-tight max-[860px]:max-w-none">
                 {statement}

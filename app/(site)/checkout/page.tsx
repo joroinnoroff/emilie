@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import CheckoutClient from "@/components/CheckoutClient"
-import CheckoutHeading from "@/components/CheckoutHeading"
 import { Wrap } from "@/components/ui"
 
 export const metadata: Metadata = {
@@ -11,7 +10,6 @@ export default function CheckoutPage() {
   return (
     <section className="pt-[150px] pb-20">
       <Wrap>
-        <CheckoutHeading />
         <CheckoutClient />
       </Wrap>
     </section>

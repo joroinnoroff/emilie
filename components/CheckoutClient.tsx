@@ -112,7 +112,90 @@ export default function CheckoutClient() {
 
   return (
     <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.15fr_0.85fr] max-[860px]:gap-8">
-      <form className="flex max-w-md flex-col gap-4" onSubmit={onSubmit}>
+      {/* Items first on mobile/tablet so users see what they're asking about */}
+      <aside className="order-1 lg:order-2 lg:sticky lg:top-28 lg:self-start">
+        <h1 className="mb-5 text-[clamp(1.65rem,2.8vw,2.4rem)] tracking-tight">
+          {t("inquiry.askingAbout")}
+        </h1>
+        <ul className="mb-6 flex list-none flex-col gap-5">
+          {lines.map((line) => {
+            const unique = line.maxStock <= 1
+            return (
+              <li
+                key={line.id}
+                className="grid grid-cols-[72px_1fr_auto] items-start gap-3.5"
+              >
+                <div className="aspect-[4/5] overflow-hidden bg-[#eee]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={line.image}
+                    alt={line.title}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-base font-medium">{line.title}</div>
+                  <div className="mt-0.5 text-[0.8125rem] text-ink-soft">
+                    {line.variant === "original"
+                      ? t("shop.original")
+                      : `${t("shop.print")} · ${line.printSize}`}
+                  </div>
+                  <div className="mt-1 text-sm text-ink-soft">
+                    {money({
+                      priceNok: line.priceNok,
+                      priceEur: line.priceEur,
+                    })}
+                    {line.qty > 1 ? ` × ${line.qty}` : ""}
+                  </div>
+                  {!unique ? (
+                    <div className="mt-2.5 flex items-center gap-2.5 text-sm">
+                      <button
+                        type="button"
+                        className="cursor-pointer border-0 bg-transparent p-0 font-inherit text-ink disabled:cursor-default disabled:opacity-30"
+                        disabled={getQty(line.id) <= 1}
+                        onClick={() => setQty(line.id, line.qty - 1)}
+                      >
+                        −
+                      </button>
+                      <span>{line.qty}</span>
+                      <button
+                        type="button"
+                        className="cursor-pointer border-0 bg-transparent p-0 font-inherit text-ink disabled:cursor-default disabled:opacity-30"
+                        disabled={line.qty >= line.maxStock}
+                        onClick={() => setQty(line.id, line.qty + 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className="cursor-pointer justify-self-end border-0 bg-transparent p-0 pt-0.5 font-inherit text-sm text-ink"
+                  onClick={() => removeItem(line.id)}
+                >
+                  {t("checkout.remove")}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+        <div className="flex items-center justify-between border-t border-line pt-4 text-sm text-ink-soft">
+          <span>{t("checkout.summary")}</span>
+          <strong className="text-[1.15rem] font-medium text-ink">
+            {money(
+              currency === "nok"
+                ? { priceNok: total, priceEur: null }
+                : { priceNok: null, priceEur: total }
+            )}
+          </strong>
+        </div>
+      </aside>
+
+      <form
+        className="order-2 flex max-w-md flex-col gap-4 lg:order-1"
+        onSubmit={onSubmit}
+      >
         <p className="mb-1 text-[1.0625rem] text-ink-soft">{t("inquiry.intro")}</p>
 
         <label className="flex flex-col gap-1.5 text-sm text-ink-soft">
@@ -189,83 +272,6 @@ export default function CheckoutClient() {
           </Link>
         </div>
       </form>
-
-      <aside className="lg:sticky lg:top-28 lg:self-start">
-        <h2 className="mb-5 text-2xl tracking-tight">{t("inquiry.askingAbout")}</h2>
-        <ul className="mb-6 flex list-none flex-col gap-5">
-          {lines.map((line) => {
-            const unique = line.maxStock <= 1
-            return (
-              <li
-                key={line.id}
-                className="grid grid-cols-[72px_1fr_auto] items-start gap-3.5"
-              >
-                <div className="aspect-[4/5] overflow-hidden bg-[#eee]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={line.image}
-                    alt={line.title}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-base font-medium">{line.title}</div>
-                  <div className="mt-0.5 text-[0.8125rem] text-ink-soft">
-                    {line.variant === "original"
-                      ? t("shop.original")
-                      : `${t("shop.print")} · ${line.printSize}`}
-                  </div>
-                  <div className="mt-1 text-sm text-ink-soft">
-                    {money({
-                      priceNok: line.priceNok,
-                      priceEur: line.priceEur,
-                    })}
-                    {line.qty > 1 ? ` × ${line.qty}` : ""}
-                  </div>
-                  {!unique ? (
-                    <div className="mt-2.5 flex items-center gap-2.5 text-sm">
-                      <button
-                        type="button"
-                        className="cursor-pointer border-0 bg-transparent p-0 font-inherit text-ink disabled:cursor-default disabled:opacity-30"
-                        disabled={getQty(line.id) <= 1}
-                        onClick={() => setQty(line.id, line.qty - 1)}
-                      >
-                        −
-                      </button>
-                      <span>{line.qty}</span>
-                      <button
-                        type="button"
-                        className="cursor-pointer border-0 bg-transparent p-0 font-inherit text-ink disabled:cursor-default disabled:opacity-30"
-                        disabled={line.qty >= line.maxStock}
-                        onClick={() => setQty(line.id, line.qty + 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  className="cursor-pointer justify-self-end border-0 bg-transparent p-0 pt-0.5 font-inherit text-sm text-ink"
-                  onClick={() => removeItem(line.id)}
-                >
-                  {t("checkout.remove")}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-        <div className="flex items-center justify-between border-t border-line pt-4 text-sm text-ink-soft">
-          <span>{t("checkout.summary")}</span>
-          <strong className="text-[1.15rem] font-medium text-ink">
-            {money(
-              currency === "nok"
-                ? { priceNok: total, priceEur: null }
-                : { priceNok: null, priceEur: total }
-            )}
-          </strong>
-        </div>
-      </aside>
     </div>
   )
 }

@@ -66,10 +66,13 @@ export default function WorksSection({ works }: WorksSectionProps) {
   }, [emblaApi])
 
   return (
-    <section className="relative mt-10 overflow-hidden pt-[120px] pb-20 md:pt-[140px]" id="works">
+    <section className="relative mt-10 overflow-hidden pt-[120px] pb-20 md:pt-[140px]">
       <Wrap>
         <div className="mb-9 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
-          <h2 className="min-w-0 max-w-full flex-1 basis-[12rem] text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight">
+          <h2
+            id="works"
+            className="min-w-0 max-w-full flex-1 basis-[12rem] scroll-mt-[124px] text-[clamp(1.85rem,3.2vw,2.85rem)] tracking-tight md:scroll-mt-[140px]"
+          >
             {t("works.heading")}
           </h2>
           <Link href="/shop" className={`${textLinkClass} shrink-0 whitespace-nowrap`}>

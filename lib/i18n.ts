@@ -66,7 +66,7 @@ const messages = {
     "checkout.remove": "Remove",
     "inquiry.askingAbout": "Asking about",
     "inquiry.intro":
-      "Fill in your details below. I’ll get back to you using the contact information you provide — with availability and next steps for the selected work(s).",
+      "Fill in your details below. I’ll get back to you using the contact information you provide — with availability and next steps for the selected work.",
     "inquiry.name": "Name",
     "inquiry.email": "Email",
     "inquiry.phone": "Phone number",
@@ -197,7 +197,7 @@ const messages = {
     "checkout.remove": "Fjern",
     "inquiry.askingAbout": "Forespørsel om",
     "inquiry.intro":
-      "Fyll inn opplysningene under. Jeg tar kontakt med deg ut fra informasjonen du oppgir — med tilgjengelighet og videre steg for valgte verk.",
+      "Fyll inn opplysningene under. Jeg tar kontakt med deg ut fra informasjonen du oppgir — med tilgjengelighet og videre steg for valgt verk.",
     "inquiry.name": "Navn",
     "inquiry.email": "E-post",
     "inquiry.phone": "Telefonnummer",

@@ -42,7 +42,7 @@ export default function ProductDetailView({
 
   return (
     <>
-      <section className="pt-[140px]">
+      <section className="pt-[132px]">
         <Wrap className="mb-4">
           <Link
             href="/shop"
