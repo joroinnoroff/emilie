@@ -6,6 +6,7 @@ const workFields = `
   "id": slug.current,
   "series": series->title,
   year,
+  images,
   image,
   medium,
   size,

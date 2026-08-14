@@ -139,9 +139,10 @@ export const inquiry = defineType({
               variant: "variant",
               printSize: "printSize",
               qty: "qty",
-              media: "work.image",
+              media: "work.images.0",
+              legacyMedia: "work.image",
             },
-            prepare({ title, variant, printSize, qty, media }) {
+            prepare({ title, variant, printSize, qty, media, legacyMedia }) {
               const version =
                 variant === "print"
                   ? `Print${printSize ? ` · ${printSize}` : ""}`
@@ -149,7 +150,7 @@ export const inquiry = defineType({
               return {
                 title: title || "Work",
                 subtitle: `${version} × ${qty ?? 1}`,
-                media,
+                media: media || legacyMedia,
               }
             },
           },
@@ -190,16 +191,17 @@ export const inquiry = defineType({
       status: "status",
       receivedAt: "receivedAt",
       line0: "lines.0.title",
-      media: "lines.0.work.image",
+      media: "lines.0.work.images.0",
+      legacyMedia: "lines.0.work.image",
     },
-    prepare({ name, status, receivedAt, line0, media }) {
+    prepare({ name, status, receivedAt, line0, media, legacyMedia }) {
       const date = receivedAt
         ? new Date(receivedAt).toLocaleDateString("nb-NO")
         : ""
       return {
         title: name || "Inquiry",
         subtitle: [status, line0, date].filter(Boolean).join(" · "),
-        media,
+        media: media || legacyMedia,
       }
     },
   },

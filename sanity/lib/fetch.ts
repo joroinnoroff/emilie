@@ -31,6 +31,8 @@ type SanityWork = {
   title?: string | null
   series?: string | null
   year?: string | null
+  images?: unknown[]
+  /** @deprecated legacy single-image field, kept for backward compatibility */
   image?: unknown
   medium?: string | null
   size?: string | null
@@ -75,10 +77,28 @@ function normalizeWork(doc: SanityWork | null | undefined): Project | null {
   if (!doc?.id || !doc?.title) return null
 
   let image = ""
+  let gallery: string[] = []
   try {
-    if (doc.image) image = urlFor(doc.image as Parameters<typeof urlFor>[0]).width(1400).url()
+    const images = (doc.images || []) as Parameters<typeof urlFor>[0][]
+    const urls = images
+      .map((img) => {
+        try {
+          return urlFor(img).width(1400).url()
+        } catch {
+          return ""
+        }
+      })
+      .filter(Boolean)
+    if (urls.length) {
+      image = urls[0]
+      gallery = urls.slice(1)
+    } else if (doc.image) {
+      // Fall back to the legacy single-image field for works not yet migrated
+      image = urlFor(doc.image as Parameters<typeof urlFor>[0]).width(1400).url()
+    }
   } catch {
     image = ""
+    gallery = []
   }
 
   const status: Status = doc.status === "Sold" ? "Sold" : "Available"
@@ -94,6 +114,7 @@ function normalizeWork(doc: SanityWork | null | undefined): Project | null {
     series: doc.series || "Works",
     year: doc.year || "",
     image,
+    gallery,
     medium: doc.medium || "Oil on canvas",
     size: doc.size || "",
     stock,

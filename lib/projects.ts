@@ -14,6 +14,8 @@ export interface Project {
   series: string
   year: string
   image: string
+  /** Additional images (beyond the main/cover image), shown on the detail page */
+  gallery: string[]
   medium: string
   size: string
   stock: number
@@ -36,6 +38,7 @@ export const PROJECTS: Project[] = [
     series: "Orchid Studies",
     year: "2025",
     image: "/image0.jpeg",
+    gallery: ["/image1.jpeg", "/image2.jpeg"],
     medium: "Oil on canvas",
     size: "60 × 50 cm",
     price: "€1,450",
@@ -58,6 +61,7 @@ export const PROJECTS: Project[] = [
     series: "Orchid Studies",
     year: "2024",
     image: "/image4.jpeg",
+    gallery: ["/image3.jpeg", "/image8.jpeg"],
     medium: "Oil on canvas",
     size: "48 × 64 cm",
     price: "€980",
@@ -77,6 +81,7 @@ export const PROJECTS: Project[] = [
     series: "Orchid Studies",
     year: "2023",
     image: "/image11.jpeg",
+    gallery: ["/image9.jpeg", "/image12.jpeg"],
     medium: "Oil on canvas",
     size: "51 × 64 cm",
     price: "€1,050",
@@ -96,6 +101,7 @@ export const PROJECTS: Project[] = [
     series: "Orchid Studies",
     year: "2024",
     image: "/image7.jpeg",
+    gallery: ["/image13.jpeg", "/image14.jpeg"],
     medium: "Oil on canvas",
     size: "51 × 64 cm",
     price: "—",

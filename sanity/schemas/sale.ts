@@ -86,9 +86,10 @@ export const sale = defineType({
       nok: "amountNok",
       eur: "amountEur",
       soldAt: "soldAt",
-      media: "work.image",
+      media: "work.images.0",
+      legacyMedia: "work.image",
     },
-    prepare({ title, nok, eur, soldAt, media }) {
+    prepare({ title, nok, eur, soldAt, media, legacyMedia }) {
       const amount =
         nok != null ? `${nok} kr` : eur != null ? `€${eur}` : "—"
       const date = soldAt
@@ -97,7 +98,7 @@ export const sale = defineType({
       return {
         title: title || "Sale",
         subtitle: [amount, date].filter(Boolean).join(" · "),
-        media,
+        media: media || legacyMedia,
       }
     },
   },

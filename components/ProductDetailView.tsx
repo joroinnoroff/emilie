@@ -67,6 +67,17 @@ export default function ProductDetailView({
             <div className="mt-3 text-sm text-ink-soft min-[861px]:hidden">
               {product.medium} — {product.year}
             </div>
+            {product.gallery.length > 0 ? (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {product.gallery.map((src, i) => (
+                  <FullscreenImage
+                    key={src + i}
+                    src={src}
+                    alt={`${product.title} — ${i + 2}`}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div>

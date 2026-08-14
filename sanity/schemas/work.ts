@@ -31,11 +31,13 @@ export const work = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "image",
-      title: "Image",
-      type: "image",
-      options: { hotspot: true },
-      validation: (Rule) => Rule.required(),
+      name: "images",
+      title: "Images",
+      type: "array",
+      description:
+        "Upload one or more images. The first image is used as the main/cover image throughout the site; any additional images are shown on the artwork's detail page.",
+      of: [{ type: "image", options: { hotspot: true } }],
+      validation: (Rule) => Rule.required().min(1),
     }),
     defineField({
       name: "medium",
@@ -174,14 +176,15 @@ export const work = defineType({
     select: {
       title: "title",
       subtitle: "year",
-      media: "image",
+      media: "images.0",
+      legacyMedia: "image",
       status: "status",
     },
-    prepare({ title, subtitle, media, status }) {
+    prepare({ title, subtitle, media, legacyMedia, status }) {
       return {
         title,
         subtitle: [subtitle, status].filter(Boolean).join(" · "),
-        media,
+        media: media || legacyMedia,
       }
     },
   },

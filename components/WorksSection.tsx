@@ -95,13 +95,13 @@ export default function WorksSection({ works }: WorksSectionProps) {
                 <div className="flex w-fit flex-col">
                   <Link
                     href={`/shop/${p.id}`}
-                    className="relative mb-4 block h-[min(62vh,440px)] w-fit overflow-hidden bg-[#eee] md:h-[min(62vh,520px)]"
+                    className="relative mb-4 block h-[min(58vh,410px)] w-fit overflow-hidden bg-[#eee] md:h-[min(62vh,520px)]"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.image}
                       alt={p.title}
-                      className="block h-full w-auto max-w-[min(86vw,820px)] select-none md:max-w-[min(75vw,900px)]"
+                      className="block h-full w-auto max-w-[min(80vw,770px)] select-none md:max-w-[min(75vw,900px)]"
                       draggable={false}
                     />
                   </Link>
