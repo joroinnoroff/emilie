@@ -43,6 +43,7 @@ export type CvItem = {
 }
 
 export type AboutContent = {
+  portraitUrl?: string
   bio?: string[]
   bioNb?: string[]
   education?: CvItem[]
@@ -117,6 +118,7 @@ export const defaultSiteSettings: SiteSettings = {
 }
 
 export const defaultAbout: AboutContent = {
+  portraitUrl: "/about-portrait.png",
   bio: [
     "My work moves between still life and dreamscape — orchids, shells, birds, and everyday objects placed in soft, cloud-lit environments that feel just slightly out of time. Each painting begins as a study of a single object and grows into a quiet scene about memory, care, and the tension between abundance and absence.",
     "Working primarily in oil on canvas, I'm drawn to coastal light, classical staging, and symbols borrowed from surrealism — thresholds, orbs, and the space between interior and horizon.",

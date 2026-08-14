@@ -142,13 +142,27 @@ export async function getAboutContent(): Promise<AboutContent> {
   if (!hasSanityConfig) return defaultAbout
 
   try {
-    const data = await client.fetch<AboutContent | null>(
-      aboutQuery,
-      {},
-      { next: { revalidate: 30, tags: ["about"] } }
-    )
+    const data = await client.fetch<{
+      portrait?: Parameters<typeof urlFor>[0]
+      bio?: string[]
+      bioNb?: string[]
+      education?: AboutContent["education"]
+      exhibitions?: AboutContent["exhibitions"]
+      awards?: AboutContent["awards"]
+    } | null>(aboutQuery, {}, { next: { revalidate: 30, tags: ["about"] } })
     if (!data) return defaultAbout
+
+    let portraitUrl = defaultAbout.portraitUrl
+    if (data.portrait) {
+      try {
+        portraitUrl = urlFor(data.portrait).width(1200).url()
+      } catch {
+        // keep default
+      }
+    }
+
     return {
+      portraitUrl,
       bio: data.bio?.length ? data.bio : defaultAbout.bio,
       bioNb: data.bioNb?.length ? data.bioNb : defaultAbout.bioNb,
       education: data.education?.length ? data.education : defaultAbout.education,

@@ -147,7 +147,7 @@ export default function About({ content }: AboutProps) {
             >
               <Image
                 ref={imageRef}
-                src="/about-portrait.png"
+                src={content.portraitUrl || "/about-portrait.png"}
                 alt={
                   locale === "nb"
                     ? "Emilie foran et av sine malerier"

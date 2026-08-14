@@ -115,6 +115,7 @@ export const aboutQuery = groq`
     *[_id == "about"][0],
     *[_type == "about"][0]
   ) {
+    portrait,
     bio,
     bioNb,
     education,

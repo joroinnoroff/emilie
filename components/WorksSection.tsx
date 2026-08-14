@@ -83,7 +83,7 @@ export default function WorksSection({ works }: WorksSectionProps) {
 
       <div className="relative">
         <div
-          className="overflow-hidden pl-9 pr-6 md:pl-14 md:pr-12"
+          className="overflow-hidden pl-6 pr-6 md:pl-14 md:pr-12"
           ref={emblaRef}
         >
           <div className="flex touch-pan-y gap-5 md:gap-7">
@@ -95,13 +95,13 @@ export default function WorksSection({ works }: WorksSectionProps) {
                 <div className="flex w-fit flex-col">
                   <Link
                     href={`/shop/${p.id}`}
-                    className="relative mb-4 block h-[min(68vh,480px)] w-fit overflow-hidden bg-[#eee] md:h-[min(62vh,520px)]"
+                    className="relative mb-4 block h-[min(62vh,440px)] w-fit overflow-hidden bg-[#eee] md:h-[min(62vh,520px)]"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.image}
                       alt={p.title}
-                      className="block h-full w-auto max-w-[min(92vw,820px)] select-none md:max-w-[min(75vw,900px)]"
+                      className="block h-full w-auto max-w-[min(86vw,820px)] select-none md:max-w-[min(75vw,900px)]"
                       draggable={false}
                     />
                   </Link>

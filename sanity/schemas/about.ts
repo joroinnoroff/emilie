@@ -6,6 +6,13 @@ export const about = defineType({
   type: "document",
   fields: [
     defineField({
+      name: "portrait",
+      title: "Portrait image",
+      type: "image",
+      description: "About section photo. Leave empty to use the site default.",
+      options: { hotspot: true },
+    }),
+    defineField({
       name: "bio",
       title: "Bio paragraphs (English)",
       type: "array",
@@ -37,8 +44,9 @@ export const about = defineType({
     }),
   ],
   preview: {
-    prepare() {
-      return { title: "About" }
+    select: { media: "portrait" },
+    prepare({ media }) {
+      return { title: "About", media }
     },
   },
 })
