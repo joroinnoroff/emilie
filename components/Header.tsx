@@ -77,7 +77,6 @@ export default function Header({
   const [hasHero, setHasHero] = useState(false)
   const [open, setOpen] = useState(false)
   const [logoKey, setLogoKey] = useState(0)
-  const [aboutTheme, setAboutTheme] = useState(false)
   const { count, toggleCart, closeCart } = useCart()
   const pathName = usePathname()
   const { locale, setLocale, t } = useLocale()
@@ -94,25 +93,11 @@ export default function Header({
   const heroLinks = useMemo(() => links.filter((link) => link.hero), [links])
 
   useEffect(() => {
-    const syncAboutTheme = () => {
-      setAboutTheme(document.documentElement.dataset.aboutTheme === "1")
-    }
-    syncAboutTheme()
-    const observer = new MutationObserver(syncAboutTheme)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-about-theme"],
-    })
-    return () => observer.disconnect()
-  }, [])
-
-  useEffect(() => {
     if (pathName !== "/") {
       setCookie(HERO_COOKIE, "1")
       setHasHero(false)
       setPastVideo(true)
       setOpen(false)
-      setAboutTheme(false)
     }
   }, [pathName])
 
@@ -192,13 +177,7 @@ export default function Header({
         type="button"
         className={cn(
           "cursor-pointer border-0 bg-transparent p-0 font-inherit text-sm transition-colors duration-500",
-          aboutTheme
-            ? locale === "en"
-              ? "border-b border-white text-white"
-              : "text-white/70"
-            : locale === "en"
-              ? "border-b border-ink text-ink"
-              : "text-ink-soft"
+          locale === "en" ? "border-b border-ink text-ink" : "text-ink-soft"
         )}
         onClick={() => setLocale("en")}
       >
@@ -208,13 +187,7 @@ export default function Header({
         type="button"
         className={cn(
           "cursor-pointer border-0 bg-transparent p-0 font-inherit text-sm transition-colors duration-500",
-          aboutTheme
-            ? locale === "nb"
-              ? "border-b border-white text-white"
-              : "text-white/70"
-            : locale === "nb"
-              ? "border-b border-ink text-ink"
-              : "text-ink-soft"
+          locale === "nb" ? "border-b border-ink text-ink" : "text-ink-soft"
         )}
         onClick={() => setLocale("nb")}
       >
@@ -227,11 +200,7 @@ export default function Header({
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-[200] py-[22px] transition-colors duration-300",
-        aboutTheme
-          ? "bg-about text-white"
-          : scrolled || open
-            ? "bg-white text-ink"
-            : "bg-transparent text-ink",
+        scrolled || open ? "bg-white text-ink" : "bg-transparent text-ink",
         open && "z-[400]"
       )}
     >
@@ -243,25 +212,14 @@ export default function Header({
             <Link
               href="/"
               key={logoKey}
-              className={cn(
-                "inline-flex min-w-16 whitespace-nowrap text-xl font-medium transition-colors duration-500",
-                aboutTheme ? "text-white" : "text-ink"
-              )}
+              className="logo-fade inline-flex min-w-16 whitespace-nowrap text-xl font-medium text-ink"
               onClick={() => {
                 setCookie(HERO_COOKIE, "1")
                 setOpen(false)
                 closeCart()
               }}
             >
-              {LOGO.split("").map((char, i) => (
-                <span
-                  key={`${char}-${i}`}
-                  className="logo-char"
-                  style={{ animationDelay: `${80 + i * 45}ms` }}
-                >
-                  {char === " " ? "\u00A0" : char}
-                </span>
-              ))}
+              {LOGO}
             </Link>
           ) : null}
         </div>
@@ -270,21 +228,13 @@ export default function Header({
           {showCart ? (
             <button
               type="button"
-              className={cn(
-                "relative inline-flex shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent p-0 transition-colors duration-500 hover:opacity-55",
-                aboutTheme ? "text-white" : "text-ink"
-              )}
+              className="relative inline-flex shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-ink transition-colors duration-500 hover:opacity-55"
               onClick={toggleCart}
               aria-label={count > 0 ? `${t("nav.cart")} (${count})` : t("nav.cart")}
             >
               <CartIcon />
               {count > 0 ? (
-                <span
-                  className={cn(
-                    "absolute -top-1.5 -right-2 min-w-4 rounded-full px-1 text-center text-[10px] leading-4 font-medium",
-                    aboutTheme ? "bg-white text-about" : "bg-ink text-white"
-                  )}
-                >
+                <span className="absolute -top-1.5 -right-2 min-w-4 rounded-full bg-ink px-1 text-center text-[10px] leading-4 font-medium text-white">
                   {count}
                 </span>
               ) : null}
@@ -298,12 +248,7 @@ export default function Header({
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className={cn(
-                        "whitespace-nowrap border-b border-transparent text-base transition-[border-color,color] duration-500 max-[1100px]:text-[0.9375rem] max-[760px]:text-sm",
-                        aboutTheme
-                          ? "text-white hover:border-white"
-                          : "text-ink hover:border-ink"
-                      )}
+                      className="whitespace-nowrap border-b border-transparent text-base text-ink transition-[border-color,color] duration-500 hover:border-ink max-[1100px]:text-[0.9375rem] max-[760px]:text-sm"
                     >
                       {t(link.labelKey)}
                     </Link>
@@ -325,15 +270,13 @@ export default function Header({
             >
               <span
                 className={cn(
-                  "menu-toggle-line menu-toggle-line-top absolute inset-x-0 top-0 h-0.5 transition-colors duration-500",
-                  aboutTheme ? "bg-white" : "bg-ink",
+                  "menu-toggle-line menu-toggle-line-top absolute inset-x-0 top-0 h-0.5 bg-ink transition-colors duration-500",
                   open && "open"
                 )}
               />
               <span
                 className={cn(
-                  "menu-toggle-line menu-toggle-line-bottom absolute inset-x-0 bottom-0 h-0.5 transition-colors duration-500",
-                  aboutTheme ? "bg-white" : "bg-ink",
+                  "menu-toggle-line menu-toggle-line-bottom absolute inset-x-0 bottom-0 h-0.5 bg-ink transition-colors duration-500",
                   open && "open"
                 )}
               />
@@ -345,8 +288,7 @@ export default function Header({
       {!onHeroLanding ? (
         <div
           className={cn(
-            "absolute inset-x-0 top-full z-[1] max-h-0 overflow-hidden opacity-0 transition-[max-height,opacity,background-color] duration-400 ease-[cubic-bezier(0.22,0.9,0.32,1)]",
-            aboutTheme ? "bg-about" : "bg-white",
+            "absolute inset-x-0 top-full z-[1] max-h-0 overflow-hidden bg-white opacity-0 transition-[max-height,opacity] duration-400 ease-[cubic-bezier(0.22,0.9,0.32,1)]",
             open && "max-h-[420px] opacity-100"
           )}
         >
@@ -359,12 +301,7 @@ export default function Header({
                 <a
                   href={`mailto:${email}`}
                   aria-label="Email"
-                  className={cn(
-                    "inline-flex items-center justify-center transition-colors duration-500",
-                    aboutTheme
-                      ? "text-white/75 hover:text-white"
-                      : "text-ink-soft hover:text-ink"
-                  )}
+                  className="inline-flex items-center justify-center text-ink-soft transition-colors duration-500 hover:text-ink"
                   onClick={() => setOpen(false)}
                 >
                   <MailIcon />
@@ -374,12 +311,7 @@ export default function Header({
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Instagram"
-                  className={cn(
-                    "inline-flex items-center justify-center transition-colors duration-500",
-                    aboutTheme
-                      ? "text-white/75 hover:text-white"
-                      : "text-ink-soft hover:text-ink"
-                  )}
+                  className="inline-flex items-center justify-center text-ink-soft transition-colors duration-500 hover:text-ink"
                   onClick={() => setOpen(false)}
                 >
                   <InstagramIcon />
@@ -387,12 +319,7 @@ export default function Header({
               </div>
               <Link
                 href="/privacy"
-                className={cn(
-                  "text-sm transition-colors duration-500",
-                  aboutTheme
-                    ? "text-white/70 hover:text-white"
-                    : "text-ink-soft hover:text-ink"
-                )}
+                className="text-sm text-ink-soft transition-colors duration-500 hover:text-ink"
                 onClick={() => setOpen(false)}
               >
                 {t("legal.title")}
@@ -403,10 +330,7 @@ export default function Header({
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={cn(
-                      "text-lg transition-opacity duration-500 hover:opacity-50",
-                      aboutTheme ? "text-white" : "text-ink"
-                    )}
+                    className="text-lg text-ink transition-opacity duration-500 hover:opacity-50"
                     onClick={() => {
                       setOpen(false)
                       closeCart()

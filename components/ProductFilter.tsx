@@ -339,7 +339,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
 
       <div ref={filterBarRef} className="sticky top-[var(--header-height)] z-[150] mb-6">
         <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 bg-white py-3">
-          <div className="w-full px-6 md:px-12">
+          <div className="mx-auto w-full max-w-[1280px] px-6 md:px-12">
             <div className="flex w-fit max-w-full flex-nowrap items-center gap-x-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {PRIMARY.map((option) => (
                 <button
@@ -399,7 +399,9 @@ export default function ProductFilter({ products }: { products: Project[] }) {
 
               <button
                 type="button"
-                className="inline-flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0 text-ink-soft transition-colors hover:text-ink"
+                className={`inline-flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0 text-ink-soft transition-colors hover:text-ink ${
+                  expanded ? "-ml-2" : ""
+                }`}
                 onClick={() => setExpanded((v) => !v)}
                 aria-label={expanded ? "Hide filters" : "More filters"}
                 aria-expanded={expanded}
