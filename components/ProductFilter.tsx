@@ -457,7 +457,7 @@ export default function ProductFilter({ products }: { products: Project[] }) {
               : `/shop/${product.id}`
           return (
             <Link href={href} key={product.id} className="flex w-full min-w-0 flex-col gap-3.5">
-              <NaturalAspectImage src={product.image} alt={product.title} />
+              <NaturalAspectImage src={product.image} alt={`${product.title} — Emilie W. Lien`} />
               <div className="flex min-w-0 items-baseline justify-between gap-5 pt-1">
                 <h2 className="min-w-0 truncate text-[1.125rem] font-medium">{product.title}</h2>
                 <span className="shrink-0 text-sm text-ink-soft">

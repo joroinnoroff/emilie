@@ -44,7 +44,7 @@ export default function Shop({ items }: ShopProps) {
             const label = offerLabel(p, t)
             return (
               <div key={p.id} className="flex min-w-0 flex-col gap-4">
-                <NaturalAspectImage src={p.image} alt={p.title} />
+                <NaturalAspectImage src={p.image} alt={`${p.title} — Emilie W. Lien`} />
                 <div className="flex flex-col gap-2 pt-1">
                   <div className="text-lg tracking-tight md:text-xl">{p.title}</div>
                   {label ? (

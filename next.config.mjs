@@ -15,6 +15,16 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "emilie-six.vercel.app" }],
+        destination: "https://emiliewlien.no/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

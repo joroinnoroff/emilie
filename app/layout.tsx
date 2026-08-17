@@ -1,23 +1,59 @@
 import type { Metadata } from "next"
+import { getSiteUrl } from "@/lib/site"
 import "./globals.css"
 
-function resolveSiteUrl() {
-  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "")
-  if (fromEnv) return fromEnv
-  const fromVercel = process.env.VERCEL_PROJECT_PRODUCTION_URL?.replace(
-    /\/$/,
-    ""
-  )
-  if (fromVercel) {
-    return fromVercel.startsWith("http")
-      ? fromVercel
-      : `https://${fromVercel}`
-  }
-  // Canonical production host (not emilie.no — that breaks OG/Twitter image URLs)
-  return "https://www.emiliewlien.no"
-}
+const siteUrl = getSiteUrl()
 
-const siteUrl = resolveSiteUrl()
+const keywords = [
+  "Emilie W. Lien",
+  "Emilie W Lien",
+  "Emilie Lien",
+  "Emilie W Lien kunst",
+  "Emilie W Lien art",
+  "Emilie W Lien artist",
+  "Emilie W Lien painter",
+  "Emilie W Lien maler",
+  "Emilie W Lien kunstner",
+  "Emilie W Lien Oslo",
+  "Emilie W Lien oil paintings",
+  "Emilie W Lien oljemaleri",
+  "Emilie Utstillinger",
+  "Emilie Kunstner",
+  "Emilie kunst",
+  "norsk kunstner Oslo",
+  "norsk maler",
+  "norwegian painter",
+  "norwegian contemporary artist",
+  "oljemalerier Oslo",
+  "oil paintings Oslo",
+  "kjøp kunst Oslo",
+  "kjøp kunst Norge",
+  "samtidskunst Norge",
+  "surrealistiske malerier",
+  "surrealist oil painting",
+  "orkide malerier",
+  "orchid paintings",
+  "stilleben maleri",
+  "contemporary still life painting",
+]
+
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Emilie W. Lien",
+  alternateName: ["Emilie W Lien", "Emilie Lien"],
+  url: siteUrl,
+  image: `${siteUrl}/about-portrait.png`,
+  jobTitle: "Visual Artist",
+  description:
+    "Norwegian oil painter based in Oslo, working between still life and dreamscape — orchids, shells, birds, and everyday objects in soft, surreal compositions.",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Oslo",
+    addressCountry: "NO",
+  },
+  sameAs: ["https://www.instagram.com/emilieewl"],
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -26,6 +62,10 @@ export const metadata: Metadata = {
     template: "%s · Emilie W. Lien",
   },
   description: "Original oil paintings and exhibitions by Emilie W. Lien.",
+  keywords,
+  alternates: {
+    canonical: siteUrl,
+  },
   openGraph: {
     type: "website",
     locale: "nb_NO",
@@ -68,6 +108,10 @@ export default function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
           rel="stylesheet"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
         />
       </head>
       <body>{children}</body>

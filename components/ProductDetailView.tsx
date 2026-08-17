@@ -63,7 +63,7 @@ export default function ProductDetailView({
 
         <Wrap className="grid grid-cols-1 items-start gap-[60px] min-[861px]:grid-cols-[0.95fr_1fr] max-[860px]:gap-8">
           <div className="relative z-30 min-[861px]:sticky min-[861px]:top-[110px]">
-            <FullscreenImage src={product.image} alt={product.title} />
+            <FullscreenImage src={product.image} alt={`${product.title} — Emilie W. Lien`} />
             <div className="mt-3 text-sm text-ink-soft min-[861px]:hidden">
               {product.medium} — {product.year}
             </div>
@@ -73,7 +73,7 @@ export default function ProductDetailView({
                   <FullscreenImage
                     key={src + i}
                     src={src}
-                    alt={`${product.title} — ${i + 2}`}
+                    alt={`${product.title} — Emilie W. Lien (${i + 2})`}
                   />
                 ))}
               </div>

@@ -150,8 +150,8 @@ export default function About({ content }: AboutProps) {
                 src={content.portraitUrl || "/about-portrait.png"}
                 alt={
                   locale === "nb"
-                    ? "Emilie foran et av sine malerier"
-                    : "Emilie in front of one of her paintings"
+                    ? "Emilie W. Lien foran et av sine malerier"
+                    : "Emilie W. Lien in front of one of her paintings"
                 }
                 fill
                 sizes="(max-width: 768px) 100vw, 380px"

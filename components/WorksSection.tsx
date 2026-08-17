@@ -100,7 +100,7 @@ export default function WorksSection({ works }: WorksSectionProps) {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.image}
-                      alt={p.title}
+                      alt={`${p.title} — Emilie W. Lien`}
                       className="block h-auto max-h-[min(62vh,440px)] w-auto max-w-[min(86vw,820px)] select-none md:max-h-[min(62vh,520px)] md:max-w-[min(75vw,900px)]"
                       draggable={false}
                     />

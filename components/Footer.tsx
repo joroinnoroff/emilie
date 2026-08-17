@@ -117,7 +117,14 @@ export default function Footer({ settings }: FooterProps) {
           </div>
           <div className="flex w-full items-baseline justify-between gap-4 lg:contents">
             <span className="lg:order-1">{t("footer.rights")}</span>
-            <span className="text-[0.55rem] lg:order-3">Made by Oino</span>
+            <a
+              href="https://oino.no/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[0.55rem] transition-opacity hover:opacity-60 lg:order-3"
+            >
+              Made by Oino
+            </a>
           </div>
         </div>
       </Wrap>
